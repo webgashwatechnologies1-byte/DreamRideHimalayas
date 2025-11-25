@@ -73,7 +73,7 @@
 
     <div class="sidebar-dashboard">
         <div class="db-logo">
-            <a href="index.html">
+            <a href="/admin/dashboard">
                 <img src="/assets/images/dreamridelogo.webp" alt="Logo">
                 <span>DreamRide</span>
             </a>
@@ -82,96 +82,97 @@
         <div class="db-menu">
             <ul>
 
-                <li class="active">
+                            <li class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
                     <a href="/admin/dashboard">
                         <i class="fa-solid fa-gauge"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
 
-                <li class="active">
+                <li class="{{ Request::is('admin/blog*') ? 'active' : '' }}">
                     <a href="/admin/blog">
                         <i class="fa-solid fa-blog"></i>
                         <span>Blogs</span>
                     </a>
                 </li>
 
-                <li class="active">
+                <li class="{{ Request::is('admin/gallery*') ? 'active' : '' }}">
                     <a href="/admin/gallery">
                         <i class="fa-solid fa-images"></i>
                         <span>Gallery</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/contact*') ? 'active' : '' }}">
+                    <a href="/admin/contact">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+
+                <li class="{{ Request::is('admin/forms/booking*') ? 'active' : '' }}">
                     <a href="/admin/forms/booking">
                         <i class="fa-solid fa-calendar-check"></i>
                         <span>Booking</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/forms/enquiries*') ? 'active' : '' }}">
                     <a href="/admin/forms/enquiries">
                         <i class="fa-regular fa-envelope"></i>
                         <span>Enquiry</span>
                     </a>
                 </li>
 
-                {{-- <li>
-                    <a href="/admin/category">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span>Category</span>
-                    </a>
-                </li> --}}
-
-                <li>
+                <li class="{{ Request::is('admin/tours*') ? 'active' : '' }}">
                     <a href="/admin/tours">
                         <i class="fa-solid fa-route"></i>
                         <span>Tours</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/type*') ? 'active' : '' }}">
                     <a href="/admin/type">
                         <i class="fa-solid fa-list"></i>
                         <span>Type</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/places*') ? 'active' : '' }}">
                     <a href="/admin/places">
                         <i class="fa-solid fa-map-pin"></i>
                         <span>Places</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/services*') ? 'active' : '' }}">
                     <a href="/admin/services">
                         <i class="fa-solid fa-briefcase"></i>
                         <span>Services</span>
                     </a>
                 </li>
 
-                <li>
+                <li class="{{ Request::is('admin/package*') ? 'active' : '' }}">
                     <a href="/admin/package">
                         <i class="fa-solid fa-box-open"></i>
                         <span>Package</span>
                     </a>
                 </li>
 
-                <li id="pages-menu">
+                <li class="{{ Request::is('admin/pages*') ? 'active' : '' }}">
                     <a href="/admin/pages">
                         <i class="fa-regular fa-file-lines"></i>
                         <span>Pages</span>
                     </a>
                 </li>
 
-                <li id="settings-menu">
+                <li id="settings-menu" class="{{ Request::is('admin/manage-header') || Request::is('admin/manage-footer') ? 'active' : '' }}">
                     <a>
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
                 </li>
+
 
                 {{-- <li>
                     <a href="/admin/login">

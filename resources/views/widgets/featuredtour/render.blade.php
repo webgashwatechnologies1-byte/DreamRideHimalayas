@@ -5,7 +5,6 @@ use App\Models\Tours;
 $title = $content['title'] ?? 'Featured Tours';
 $subtitle = $content['subtitle'] ?? '';
 $cards = $content['cards'] ?? [];
-$wid = "widget-" . $section->id; 
 
 @endphp
 <style>

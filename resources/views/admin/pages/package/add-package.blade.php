@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.css">
 <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+{{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
   
 <!-- Font Awesome -->
 <script src="https://kit.fontawesome.com/a2e0bf0c10.js" crossorigin="anonymous"></script>
@@ -32,6 +32,85 @@
     <link rel="shortcut icon" href="/assets/images/dreamridelogo.webp">
     <link rel="apple-touch-icon-precomposed" href="/assets/images/dreamridelogo.webp">
     <style>
+     /* Upload Box */
+.upload-box {
+    width: 220px;
+    height: 220px;
+    border: 2px dashed #b3b3b3;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: 0.25s ease;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.upload-box:hover {
+    background: #eef2f3;
+}
+
+.upload-box.dragover {
+    background: #e1f7e6;
+    border-color: #22c55e;
+}
+
+.upload-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upload-label i {
+    font-size: 40px;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.upload-label span {
+    font-size: 14px;
+    color: #444;
+}
+
+/* Gallery Grid (same as edit page) */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.gallery-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 6px 8px;
+    border-radius: 50%;
+    opacity: 0.8;
+    transition: 0.2s ease;
+}
+
+.gallery-delete:hover {
+    opacity: 1;
+}
+
         .day-block {
           background: #fff;
           transition: 0.2s ease-in-out;
@@ -482,18 +561,19 @@
                                 <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
 
                                {{-- Image will go here --}}
-                                  <div class="upload-box">
-              <label for="uploadImage">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Click or drag to upload image</span>
-                <input type="file" id="uploadImage" accept="image/*" hidden>
-              </label>
-            </div>
+                                <div id="uploadBox" class="upload-box">
+                                    <label for="uploadImage" class="upload-label">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Click or Drag Images</span>
+                                    </label>
+                                    <input type="file" id="uploadImage" accept="image/*" multiple hidden>
+                                </div>
 
-            <div id="galleryContainer" class="gallery-grid">
-              <p class="text-center text-muted">Loading gallery...</p>
-            </div>
-                                <div class="input-wrap">
+                                <div id="galleryContainer" class="gallery-grid">
+                                    <p class="text-center text-muted">No Image Selected</p>
+                                </div>
+<hr/>
+                                <div class="input-wrap my-3">
                                     <button type="button" class="button-add"> Save changes</button>
                                 </div>
 
@@ -505,30 +585,8 @@
                     </section>
                 </main>
 
-                <footer class="footer footer-dashboard">
-                    <div class="tf-container full">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <p class="text-white">Made with ❤️ by Gashwa Technologies. </p>
-                            </div>
-                            <div class="col-lg-6">
-                                <ul class="menu-footer flex-six">
-                                    <li>
-                                        <a href="#">Privacy & Policy</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Licensing</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Instruction</a>
-                                    </li>
-                                </ul>
+                  @include('admin.components.footer')
 
-                            </div>
-                        </div>
-
-                    </div>
-                </footer>
 
                 <!-- Bottom -->
             </div>
@@ -571,6 +629,8 @@
     </div>
 
     <!-- Javascript -->
+    <script src="/app/js/admin-auth-guard.js"></script>
+
     <script src="/app/js/jquery.min.js"></script>
     <script src="/app/js/jquery.nice-select.min.js"></script>
     <script src="/app/js/bootstrap.min.js"></script>
@@ -1564,21 +1624,21 @@ function renderGallery() {
     return;
   }
 
-  shotGalleryArray.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const card = $(`
-        <div class="gallery-item" data-index="${index}">
-          <img src="${e.target.result}" alt="Gallery image">
-          <div class="gallery-actions">
-            <button type="button" class="gallery-delete btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-          </div>
+ shotGalleryArray.forEach((file, index) => {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const card = $(`
+      <div class="gallery-item" data-index="${index}">
+        <img src="${e.target.result}" alt="Gallery image">
+        <div class="gallery-actions">
+          <button type="button" class="gallery-delete btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
         </div>
-      `);
-      container.append(card);
-    };
-    reader.readAsDataURL(file);
-  });
+      </div>
+    `);
+    container.append(card);
+  };
+  reader.readAsDataURL(file);
+});
 }
 
 // delete gallery item
@@ -1588,6 +1648,33 @@ $('#galleryContainer').on('click', '.gallery-delete', function () {
   shotGalleryArray.splice(idx, 1);
   renderGallery();
 });
+
+
+const uploadBox = document.getElementById("uploadBox");
+const uploadInput = document.getElementById("uploadImage");
+
+
+// DRAG OVER
+uploadBox.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadBox.classList.add("dragover");
+});
+
+// DRAG LEAVE
+uploadBox.addEventListener("dragleave", () => {
+    uploadBox.classList.remove("dragover");
+});
+
+// DROP FILES
+uploadBox.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadBox.classList.remove("dragover");
+
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    shotGalleryArray = shotGalleryArray.concat(files);
+    renderGallery();
+});
+
 
 // ---------- Video input ----------
 /* Add this HTML where appropriate:
@@ -1698,7 +1785,16 @@ document.getElementById('replaceVideoBtn').addEventListener('click', async funct
 // ---------- Form submit (build FormData) ----------
 $('.button-add').on('click', function (e) {
   e.preventDefault();
-
+Swal.fire({
+        title: "Adding Package...",
+        text: "Please wait while we save your changes.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
   // gather your existing information object (as before)
   const information = {
     title: $("input[placeholder='Switzerland city tour']").val()?.trim(),
@@ -1782,21 +1878,41 @@ $('.button-add').on('click', function (e) {
       // Add auth header if needed: 'Authorization': 'Bearer TOKEN'
     }
   })
-  .then(async res => {
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Server responded ${res.status}: ${txt}`);
-    }
-    return res.json();
-  })
-  .then(data => {
-    console.log('Upload success', data);
-    // handle success (redirect / show toast / reset form)
-  })
-  .catch(err => {
-    console.error('Upload failed', err);
-    alert('Upload failed: ' + err.message);
-  });
+ .then(async res => {
+        let data;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error("Invalid JSON response from server.");
+        }
+
+        if (!res.ok) {
+            throw new Error(data.message || "Something went wrong");
+        }
+
+        // ===========================
+        // SUCCESS SWEETALERT
+        // ===========================
+        Swal.fire({
+            icon: "success",
+            title: "Added Successfully!",
+            text: "Your package has been Added.",
+            confirmButtonColor: "#28a745",
+        });
+
+        return data;
+    })
+    .catch(err => {
+        // ===========================
+        // ERROR SWEETALERT
+        // ===========================
+        Swal.fire({
+            icon: "error",
+            title: "Adding Failed",
+            html: `<p style="text-align:left;">${err.message}</p>`,
+            confirmButtonColor: "#d33",
+        });
+    });
 });
 
       </script>

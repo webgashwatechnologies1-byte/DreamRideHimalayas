@@ -73,11 +73,12 @@
 
                 </section>
             </main>
+       @include('admin.components.footer')
 
-            {{-- @include('admin.components.footer') --}}
-
+          
         </div>
     </div>
 </div>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 @endsection

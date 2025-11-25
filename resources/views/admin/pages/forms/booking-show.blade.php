@@ -173,11 +173,8 @@
 
                 </main>
 
-                <footer class="footer footer-dashboard">
-                    <div class="tf-container full">
-                        <p class="text-white">Made with ❤️ by Themesflat.</p>
-                    </div>
-                </footer>
+                      @include('admin.components.footer')
+
 
             </div>
 
@@ -199,7 +196,8 @@
     <script src="/app/js/apexcharts.js"></script>
     <script src="/app/js/line-chart.js"></script>
     <script src="/app/js/shortcodes.js"></script>
-    <script src="/app/js/auth-validator.js"></script>`r`n    <script src="/app/js/main.js"></script>
+    <script src="/app/js/auth-validator.js"></script>  <script src="/app/js/main.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 <script>
 $(document).ready(function () {

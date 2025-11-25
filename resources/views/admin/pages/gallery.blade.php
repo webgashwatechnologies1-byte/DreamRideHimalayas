@@ -183,11 +183,8 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <p class="text-white">Made with ❤️ by Gashwa Technologies.</p>
-          </div>
-        </footer>
+               @include('admin.components.footer')
+
       </div>
     </div>
   </div>
@@ -195,6 +192,7 @@
 
   <script src="/app/js/jquery.min.js"></script>
   {!! ToastMagic::scripts() !!}
+    <script src="/app/js/admin-auth-guard.js"></script>
 
   <script>
     const APP_URL = "{{ config('app.url') }}".replace(/\/+$/, '');

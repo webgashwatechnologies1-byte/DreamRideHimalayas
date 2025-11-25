@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/app/css/map.min.css">
 
   <!-- Optional: Bootstrap & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"> --}}
 
 <!-- NOTE: include SweetAlert script in Part 2 or just before the closing body tag -->
 <style>
@@ -286,7 +286,7 @@
         </header>
 
         <main id="main">
- <!-- RIGHT: Live Preview -->
+          <!-- RIGHT: Live Preview -->
                         <div class="preview-card px-5 mb-5">
 
                             <!-- dynamic topbar -->
@@ -406,6 +406,8 @@
 
 
         </main>
+       @include('admin.components.footer')
+
       </div>
     </div>
   </div>
@@ -487,6 +489,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>if (!window.Swal) document.write('<script src="/fallback/sweetalert2.js"><\/script>');</script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 <!-- Place for Part 2 script to be injected (render & API logic) -->
 <script>

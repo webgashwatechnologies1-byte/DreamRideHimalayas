@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/app/css/map.min.css">
 
   <!-- Optional: Bootstrap & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"> --}}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -125,17 +125,17 @@
 
 <body class="body header-fixed">
 
-  <div id="wrapper">
-    <div id="pagee" class="clearfix">
+    <div id="wrapper">
 
-      @include('admin.components.sidebar')
+        <div id="pagee" class="clearfix">
 
-      <div class="has-dashboard">
-
-        <header class="main-header flex">
-          @include('admin.components.header')
-        </header>
-
+            {{-- SideBard Dashboard --}}
+          @include('admin.components.sidebar')
+            <div class="has-dashboard">
+                <!-- Main Header -->
+                 @include('admin.components.header')
+                
+                <!-- End Main Header -->
         <main id="main">
           <section class="profile-dashboard">
 
@@ -172,22 +172,7 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <div class="row">
-              <div class="col-lg-6">
-                <p class="text-white">Made with ❤️ by Gashwa Technologies. </p>
-              </div>
-              <div class="col-lg-6">
-                <ul class="menu-footer flex-six">
-                  <li><a href="#">Privacy & Policy</a></li>
-                  <li><a href="#">Licensing</a></li>
-                  <li><a href="#">Instruction</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
+       @include('admin.components.footer')
 
       </div>
     </div>
@@ -208,6 +193,7 @@
   <script src="/app/js/plugin.js"></script>
   <script src="/app/js/main.js"></script>
   {!! ToastMagic::scripts() !!}
+    <script src="/app/js/admin-auth-guard.js"></script>
 
   <script>
     const APP_URL = "{{ config('app.url') }}";

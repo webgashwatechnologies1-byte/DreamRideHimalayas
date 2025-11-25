@@ -10,7 +10,7 @@
   <!-- Styles (use your existing theme files) -->
   <link rel="stylesheet" href="/app/css/app.css" />
   <link rel="stylesheet" href="/app/css/map.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" /> --}}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <!-- TinyMCE core (script included, config will be in PART 3) -->
@@ -436,22 +436,8 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <div class="row">
-              <div class="col-lg-6">
-                <p class="text-white">Made with ❤️ by Gashwa Technologies. </p>
-              </div>
-              <div class="col-lg-6">
-                <ul class="menu-footer flex-six">
-                  <li><a href="#">Privacy & Policy</a></li>
-                  <li><a href="#">Licensing</a></li>
-                  <li><a href="#">Instruction</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
+              @include('admin.components.footer')
+
 
       </div>
       <!-- /has-dashboard -->
@@ -619,6 +605,8 @@
       };
     })();
   </script>
+    <script src="/app/js/admin-auth-guard.js"></script>
+
 <!-- PART 3: JS - TinyMCE + Uploads + Form Submit -->
 <script>
 /*

@@ -40,4 +40,16 @@ class ContactController extends Controller
 
         return response()->json(['message' => 'Contact deleted successfully']);
     }
+    // Show single Message 
+     public function show($id)
+    {
+        $contact = Contact::findOrFail($id);
+
+        // Optional: mark message as read if is_new = 1
+        if ($contact->is_new) {
+            $contact->update(['is_new' => 0]);
+        }
+
+        return response()->json($contact);
+    }
 }

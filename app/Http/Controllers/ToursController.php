@@ -61,7 +61,7 @@ class ToursController extends Controller
             'name'  => 'required|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'place_id' => 'required|exists:places,id',
-            'category_id' => 'required|exists:categories,id',
+           
         ]);
 
         // 🖼️ Store image if provided
@@ -74,7 +74,7 @@ class ToursController extends Controller
             'name'  => $validated['name'],
             'image' => $path ? 'storage/' . $path : null,
             'place_id' => $validated['place_id'],
-            'category_id' => $validated['category_id']
+           
         ]);
 
         return response()->json([
@@ -99,7 +99,6 @@ class ToursController extends Controller
             'name'  => 'required|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'place_id' => 'required|exists:places,id',
-            'category_id' => 'required|exists:categories,id',
 
         ]);
 

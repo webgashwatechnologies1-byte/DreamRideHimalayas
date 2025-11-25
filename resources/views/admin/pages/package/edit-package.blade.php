@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.css">
 <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+{{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
   
 <!-- Font Awesome -->
 <script src="https://kit.fontawesome.com/a2e0bf0c10.js" crossorigin="anonymous"></script>
@@ -32,6 +32,78 @@
     <link rel="shortcut icon" href="/assets/images/dreamridelogo.webp">
     <link rel="apple-touch-icon-precomposed" href="/assets/images/dreamridelogo.webp">
     <style>
+          .upload-box {
+            width: 100%;
+            padding: 30px;
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #f1f1f1;
+        }
+
+        .upload-drop-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .upload-box.dragover {
+            background: #e8f5e9;
+            border-color: #28a745;
+        }
+
+        .upload-drop-area i {
+            font-size: 40px;
+            color: #6c757d;
+        }
+
+              .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .gallery-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 7px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+            transition: 0.2s;
+        }
+
+        .gallery-delete:hover {
+            opacity: 1;
+        }
+
         .day-block {
           background: #fff;
           transition: 0.2s ease-in-out;
@@ -162,7 +234,8 @@
                         <div class="inner-header mb-40">
                           <h3 class="title">Add Tour</h3>
                         </div>
-                        <form action="/" id="form-add-tour" class="form-add-tour">
+        <form id="form-edit-package" class="form-add-tour" data-id="{{ $id }}">
+
                             <div class="widget-dash-board pr-256 mb-75">
                                 <h4 class="title-add-tour mb-30">1. information</h4>
                                 <div class="grid-input-2 mb-45">
@@ -482,17 +555,20 @@
                                 <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
 
                                {{-- Image will go here --}}
-                                  <div class="upload-box">
-              <label for="uploadImage">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Click or drag to upload image</span>
-                <input type="file" id="uploadImage" accept="image/*" hidden>
-              </label>
-            </div>
+                           <div class="upload-box mt-3 mb-2" id="uploadBox">
+                              <label for="uploadImage" class="upload-drop-area">
+                                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                                  <span>Click or Drag images here</span>
+                              </label>
+                              <input type="file" id="uploadImage" accept="image/*" multiple hidden>
+                          </div>
 
-            <div id="galleryContainer" class="gallery-grid">
+
+            <div id="galleryContainer" class="gallery-grid mt-3 mb-3">
               <p class="text-center text-muted">Loading gallery...</p>
             </div>
+<hr/>
+
                                 <div class="input-wrap">
                                     <button type="button" class="button-add"> Save changes</button>
                                 </div>
@@ -505,30 +581,8 @@
                     </section>
                 </main>
 
-                <footer class="footer footer-dashboard">
-                    <div class="tf-container full">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <p class="text-white">Made with ❤️ by Gashwa Technologies. </p>
-                            </div>
-                            <div class="col-lg-6">
-                                <ul class="menu-footer flex-six">
-                                    <li>
-                                        <a href="#">Privacy & Policy</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Licensing</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Instruction</a>
-                                    </li>
-                                </ul>
+                       @include('admin.components.footer')
 
-                            </div>
-                        </div>
-
-                    </div>
-                </footer>
 
                 <!-- Bottom -->
             </div>
@@ -587,6 +641,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 
     <script>
@@ -596,7 +651,8 @@
     
     {{-- // Script for Amentite and included  --}}
     <script>
-     
+     let loadedPackage = null; // will store API /api/package/{id} response
+
 
         // Generic manager factory
         function DualManager(opts) {
@@ -615,19 +671,24 @@
 
           // load from server
           function loadAll() {
-            $allList.html('<p class="text-muted small m-0 p-2">Loading...</p>');
-            $.get(api)
-              .done((res) => {
-                // handle response with either res.data or res
-                allItems = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
-                filteredAll = allItems.slice();
-                renderAll();
-                renderSelected();
-              })
-              .fail(() => {
-                $allList.html('<p class="text-danger small m-0 p-2">Failed to load.</p>');
-              });
-          }
+                  $allList.html('<p class="text-muted small m-0 p-2">Loading...</p>');
+                  $.get(api)
+                    .done((res) => {
+                      allItems = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+                      filteredAll = allItems.slice();
+                      renderAll();
+                      renderSelected();
+
+                      // notify ready
+                      if (typeof opts.onLoaded === "function") {
+                            opts.onLoaded(allItems);
+                        }
+                    })
+                    .fail(() => {
+                      $allList.html('<p class="text-danger small m-0 p-2">Failed to load.</p>');
+                    });
+              }
+
 
           // render all panel
           function renderAll() {
@@ -666,7 +727,7 @@
               $allList.append($el);
             });
           }
-
+  
           // render selected left panel
           function renderSelected() {
             $selectedList.empty();
@@ -871,9 +932,16 @@
           // initial load
           loadAll();
 
-          return {
-            getSelectedIds
-          };
+                  return {
+                getSelectedIds: () => selectedItems.map(s => s.id),
+                allItems: () => allItems,
+                selectedItems: () => selectedItems,
+                renderAll,
+                renderSelected,
+                setSelected: (arr) => { selectedItems = arr; }
+            };
+
+
         }
 
   // 🟢 Initialize emoji pickers inside each new day block
@@ -921,28 +989,79 @@
                 });
             });
        
-      
+       function preselectAmenities() {
+            const items = amenitiesMgr.allItems();
+            const selected = [];
+
+            loadedPackage.information.amenities.forEach(id => {
+                const match = items.find(x => x.id == id);
+                if (match) selected.push(match);
+            });
+
+            amenitiesMgr.setSelected(selected);
+            amenitiesMgr.renderAll();
+            amenitiesMgr.renderSelected();
+        }
+
+
+
+        function preselectIncluded() {
+            const items = includedMgr.allItems();
+            const selected = [];
+
+            loadedPackage.information.included.forEach(id => {
+                const match = items.find(x => x.id == id);
+                if (match) selected.push(match);
+            });
+
+            includedMgr.setSelected(selected);
+            includedMgr.renderAll();
+            includedMgr.renderSelected();
+        }
+
+
+
 </script>
 <script>
   // =======================
   // 2️⃣ THEN instantiate it
   // =======================
   const amenitiesMgr = DualManager({
+    name: "amenities",
     api: APP_URL + '/api/amenities',
     allListSelector: '#allAmenitiesList',
     selectedListSelector: '#selectedAmenities',
     addNewBtnSelector: '#btnAddNewAmenity',
     searchAllSelector: '#searchAllAmenities',
-    searchSelectedSelector: '#searchSelectedAmenities'
+    searchSelectedSelector: '#searchSelectedAmenities',
+    onLoaded: () => {
+        const check = setInterval(() => {
+            if (loadedPackage && amenitiesMgr.allItems().length) {
+                preselectAmenities();
+                clearInterval(check);
+            }
+        }, 100);
+    },
+
   });
   
   const includedMgr = DualManager({
+    name: "included",
     api: APP_URL + '/api/included',
     allListSelector: '#allIncludedList',
     selectedListSelector: '#selectedIncluded',
     addNewBtnSelector: '#btnAddNewIncluded',
     searchAllSelector: '#searchAllIncluded',
-    searchSelectedSelector: '#searchSelectedIncluded'
+    searchSelectedSelector: '#searchSelectedIncluded',
+    onLoaded: () => {
+        const check = setInterval(() => {
+            if (loadedPackage && includedMgr.allItems().length) {
+                preselectIncluded();
+                clearInterval(check);
+            }
+        }, 100);
+    },
+
   });
 
 
@@ -1083,6 +1202,51 @@ function getSelectedServiceIds() {
         places.forEach((place) => {
           placeList.append(`<li class="option" data-value="${place.id}">${place.name}</li>`);
         });
+// ✅ If we already loaded the package, pre-select PLACE and load its TOURS
+if (loadedPackage && loadedPackage.place_id) {
+  const placeId = loadedPackage.place_id;
+
+  // 1. Select the saved place in dropdown
+  const placeOption = $(`#placeList li[data-value='${placeId}']`);
+  if (placeOption.length) {
+    placeDropdown.find('.option').removeClass('selected focus');
+    placeOption.addClass('selected focus');
+    placeDropdown.find('.current').text(placeOption.text());
+    placeDropdown.attr('data-selected-id', placeId);
+  }
+
+  // 2. Enable Tour dropdown & load tours for this place
+  tourDropdown.removeClass('disabled')
+              .css('pointer-events', 'auto');
+  tourDropdown.find('.current').text('Fetching tours...');
+
+  fetch(`${APP_URL}/api/tours/by-place/${placeId}`)
+    .then(res => res.json())
+    .then(tourData => {
+      const tours = tourData.data || [];
+      tourList.empty().append('<li class="option selected focus" data-value="">Select Tour</li>');
+
+      tours.forEach(tour => {
+        tourList.append(`<li class="option" data-value="${tour.id}">${tour.name}</li>`);
+      });
+
+      // 3. Now preselect saved tour
+      if (loadedPackage.tour_id) {
+        const tourOption = $(`#tourList li[data-value='${loadedPackage.tour_id}']`);
+        if (tourOption.length) {
+          tourDropdown.find('.option').removeClass('selected focus');
+          tourOption.addClass('selected focus');
+          tourDropdown.find('.current').text(tourOption.text());
+          tourDropdown.attr('data-selected-id', loadedPackage.tour_id);
+        } else {
+          tourDropdown.find('.current').text('Select Tour');
+        }
+      } else {
+        tourDropdown.find('.current').text('Select Tour');
+      }
+    })
+    .catch(err => console.error("❌ Error auto-fetching tours for edit:", err));
+}
 
         // ===========================
         // STEP 2: HANDLE PLACE SELECTION
@@ -1183,6 +1347,18 @@ function getSelectedServiceIds() {
          $(this).addClass('selected focus'); 
          typeDropdown.attr('data-selected-id', value); // store selected ID 
      });
+       // ✅ If editing, preselect saved TYPE
+      if (loadedPackage && loadedPackage.information && loadedPackage.information.type) {
+        const typeId = loadedPackage.information.type;
+        const typeOption = $(`#typeList li[data-value='${typeId}']`);
+        if (typeOption.length) {
+          typeDropdown.find('.option').removeClass('selected focus');
+          typeOption.addClass('selected focus');
+          typeDropdown.find('.current').text(typeOption.text());
+          typeDropdown.attr('data-selected-id', typeId);
+        }
+      }
+
     });
   });
 </script>
@@ -1192,11 +1368,13 @@ function getSelectedServiceIds() {
         const tourDaysContainer = document.getElementById('tourDaysContainer');
         const addDayBtn = document.getElementById('addDayBtn');
         const removeAllDaysBtn = document.getElementById('removeAllDaysBtn');
- 
+
+
         // ============================
         // Create Day Block
         // ============================
-        function createDayBlock(index) {
+        function createDayBlock(index) 
+        {
           const block = document.createElement('div');
           block.classList.add('day-block', 'p-3', 'border', 'rounded', 'mb-4', 'shadow-sm');
           block.dataset.index = index;
@@ -1208,64 +1386,77 @@ function getSelectedServiceIds() {
                 <i class="fa-solid fa-trash"></i> Remove
               </button>
             </div>
-     <!-- Emoji Picker -->
-              <div class="input-wrap position-relative">
-                <label>Select Emoji</label>
-                <div class="input-group">
-                  <input 
-                    type="text" 
-                    class="form-control emoji-input" 
-                    name="emoji[]" 
-                    placeholder="Click to choose emoji" 
-                    readonly 
-                    style="cursor:pointer;font-size:24px;text-align:center;">
-                </div>
-                <emoji-picker class="emoji-picker-panel" style="position:absolute;top:100%;left:0;z-index:999;display:none;width:300px;"></emoji-picker>
-              </div>
-            </div>
-            <div class="grid-input-2 mb-3">
-              <div class="input-wrap">
-                <label>Period (Day/Night)</label>
-                <select class="form-select">
-                  <option value="Day">Day</option>
-                </select>
-              </div>
-              <div class="input-wrap">
-                <label>City Name</label>
-                <input type="text" placeholder="Enter City Name" class="form-control">
-              </div>
-            </div>
-    
-            <div class="grid-input-2 mb-3">
-              <div class="input-wrap">
-                <label>City Subtitle</label>
-                <input type="text" placeholder="From – To or Short Subtitle" class="form-control">
-              </div>
-    
-             
-    
-        
-    
-            <div class="input-wrap mb-3">
-              <label>Day Description (What we do there)</label>
-             <textarea class="textarea-tinymce" name="area"></textarea>
-            </div>
-          `;
-    
-          initializeEmojiPickers(block);
-          return block;
+                <!-- Emoji Picker -->
+                          <div class="input-wrap position-relative">
+                            <label>Select Emoji</label>
+                            <div class="input-group">
+                              <input 
+                                type="text" 
+                                class="form-control emoji-input" 
+                                name="emoji[]" 
+                                placeholder="Click to choose emoji" 
+                                readonly 
+                                style="cursor:pointer;font-size:24px;text-align:center;">
+                            </div>
+                            <emoji-picker class="emoji-picker-panel" style="position:absolute;top:100%;left:0;z-index:999;display:none;width:300px;"></emoji-picker>
+                          </div>
+                        </div>
+                        <div class="grid-input-2 mb-3">
+                          <div class="input-wrap">
+                            <label>Period (Day/Night)</label>
+                            <select class="form-select">
+                              <option value="Day">Day</option>
+                            </select>
+                          </div>
+                          <div class="input-wrap">
+                            <label>City Name</label>
+                            <input type="text" placeholder="Enter City Name" class="form-control">
+                          </div>
+                        </div>
+                
+                        <div class="grid-input-2 mb-3">
+                          <div class="input-wrap">
+                            <label>City Subtitle</label>
+                            <input type="text" placeholder="From – To or Short Subtitle" class="form-control">
+                          </div>
+                
+                        
+                
+                    
+                
+                        <div class="input-wrap mb-3">
+                          <label>Day Description (What we do there)</label>
+                        <textarea class="textarea-tinymce" name="area"></textarea>
+                        </div>
+                      `;
+                
+                      initializeEmojiPickers(block);
+                      return block;
         }
-    
+        // Renumber all days after add/delete
+        function renumberDays() {
+            let count = 1;
+            $("#tourDaysContainer .day-block").each(function () {
+                $(this).attr("data-index", count);
+                $(this).find("h5").text("Day " + count);
+                count++;
+            });
+
+            dayIndex = count; // reset global index for next new day correctly
+        }
+
         // ============================
         // Add New Day
         // ============================
-        addDayBtn.addEventListener('click', () => {
-          const newBlock = createDayBlock(dayIndex);
-          tourDaysContainer.appendChild(newBlock);
-          removeAllDaysBtn.style.display = 'inline-block';
-          dayIndex++;
-          bindRemoveButtons();
+          addDayBtn.addEventListener('click', () => {
+            const newBlock = createDayBlock(dayIndex);
+            tourDaysContainer.appendChild(newBlock);
+
+            renumberDays(); // 🔥 FIX — always recalc days
+            removeAllDaysBtn.style.display = 'inline-block';
+            bindRemoveButtons();
         });
+
     
         // ============================
         // Bind Remove Day Buttons
@@ -1284,12 +1475,16 @@ function getSelectedServiceIds() {
                 confirmButtonText: "Yes, remove it!"
               }).then((result) => {
                 if (result.isConfirmed) {
-                  btn.closest('.day-block').remove();
-                  if (!tourDaysContainer.children.length) {
+                 btn.closest('.day-block').remove();
+
+                renumberDays(); // 🔥 FIX — always recalc days
+
+                if (!tourDaysContainer.children.length) {
                     removeAllDaysBtn.style.display = 'none';
-                    dayIndex = 1;
-                  }
-                  Swal.fire("Removed!", "Day plan has been deleted.", "success");
+                }
+
+                Swal.fire("Removed!", "Day plan has been deleted.", "success");
+
                 }
               });
             };
@@ -1311,7 +1506,8 @@ function getSelectedServiceIds() {
           }).then((result) => {
             if (result.isConfirmed) {
               tourDaysContainer.innerHTML = "";
-              dayIndex = 1;
+              renumberDays(); // cleanup
+
               removeAllDaysBtn.style.display = 'none';
               Swal.fire("All Cleared!", "All day plans have been removed.", "success");
             }
@@ -1430,164 +1626,36 @@ $(function () {
   // =======================================
 
 
-  // --- state ---
-let filesArray = []; // package images (File objects)
-let mainImageIndex = 0; // default main (index in filesArray)
-let shotGalleryArray = []; // separate gallery images
+
+// MAIN PACKAGE IMAGES
+let existingImages = [];   // [{url,is_main}]
+let newImages = [];        // [File]
+let mainImageIndex = 0;    // unified index for "main"
+  
+// SHOT GALLERY
+let existingGallery = [];  // [{url}]
+let newGallery = [];       // [File]
+ // separate gallery images
 let videoFile = null;
 
-// ---------- Images (package) handling ----------
-$('#images').on('change', function () {
-  const newFiles = Array.from(this.files).filter(f => f.type && f.type.startsWith('image/'));
-  filesArray = filesArray.concat(newFiles);
-  renderPreviews();
-  this.value = ""; // reset input so same file can be re-picked
-  toggleRemoveAllBtn();
-});
 
-function renderPreviews() {
-  const previewContainer = $('#imagePreviewContainer');
-  previewContainer.empty();
 
-  filesArray.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const isMain = index === mainImageIndex;
-      const disabledAttr = isMain ? 'disabled' : '';
-      const mainLabel = isMain ? 'Main' : 'Set as Main';
 
-      const preview = $(`
-        <div class="image-preview-box" data-index="${index}">
-          <div class="image-preview">
-            <img src="${e.target.result}" alt="Image Preview">
-          </div>
-          <div class="action-buttons">
-            <button type="button" class="edit-btn btn btn-sm btn-secondary"><i class="fas fa-edit"></i> Edit</button>
-            <button type="button" class="delete-btn btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</button>
-            <button type="button" class="set-main-btn btn btn-sm btn-warning" ${disabledAttr}><i class="fas fa-star"></i> ${mainLabel}</button>
-          </div>
-        </div>
-      `);
 
-      previewContainer.append(preview);
-    };
-    reader.readAsDataURL(file);
-  });
 
-  // if no images, show placeholder
-  if (filesArray.length === 0) {
-    $('#imagePreviewContainer').html('<p class="text-muted">No images added yet</p>');
-  }
-  toggleRemoveAllBtn();
-}
 
-function toggleRemoveAllBtn() {
-  if (filesArray.length > 0) {
-    $('#removeAllBtn').show();
-  } else {
-    $('#removeAllBtn').hide();
-  }
-}
 
-// set as main
-$('#imagePreviewContainer').on('click', '.set-main-btn', function () {
-  const newMainIndex = Number($(this).closest('.image-preview-box').data('index'));
-  if (!Number.isFinite(newMainIndex)) return;
-  mainImageIndex = newMainIndex;
-  renderPreviews();
-});
 
-// delete
-$('#imagePreviewContainer').on('click', '.delete-btn', function () {
-  const indexToDelete = Number($(this).closest('.image-preview-box').data('index'));
-  if (!Number.isFinite(indexToDelete)) return;
 
-  filesArray.splice(indexToDelete, 1);
 
-  // fix main index: if removed a before-main index, shift left; if main deleted, set to 0
-  if (filesArray.length === 0) {
-    mainImageIndex = 0;
-  } else if (indexToDelete === mainImageIndex) {
-    mainImageIndex = 0;
-  } else if (indexToDelete < mainImageIndex) {
-    mainImageIndex = Math.max(0, mainImageIndex - 1);
-  }
 
-  renderPreviews();
-});
 
-// edit (replace single image)
-$(document).on('click', '.edit-btn', function () {
-  const $box = $(this).closest('.image-preview-box');
-  const index = Number($box.data('index'));
-  if (!Number.isFinite(index)) return;
 
-  // hidden temp input
-  const tempInput = $('<input type="file" accept="image/*" style="display:none;">');
-  $('body').append(tempInput);
-  tempInput.trigger('click');
 
-  tempInput.on('change', function (e) {
-    const file = e.target.files && e.target.files[0];
-    if (file && file.type && file.type.startsWith('image/')) {
-      filesArray[index] = file; // replace
-      renderPreviews();
-    } else {
-      alert('Please select a valid image file.');
-    }
-    tempInput.remove();
-  });
-});
 
-// remove all
-$('#removeAllBtn').on('click', function () {
-  if (!confirm('Remove all images?')) return;
-  filesArray = [];
-  mainImageIndex = 0;
-  renderPreviews();
-});
 
-// ---------- Shot gallery handling ----------
-$('#uploadImage').on('change', function () {
-  const newFiles = Array.from(this.files).filter(f => f.type && f.type.startsWith('image/'));
-  shotGalleryArray = shotGalleryArray.concat(newFiles);
-  renderGallery();
-  this.value = "";
-});
 
-function renderGallery() {
-  const container = $('#galleryContainer');
-  container.empty();
 
-  if (shotGalleryArray.length === 0) {
-    container.html('<p class="text-center text-muted">No gallery images yet</p>');
-    return;
-  }
-
-  shotGalleryArray.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const card = $(`
-        <div class="gallery-item" data-index="${index}">
-          <img src="${e.target.result}" alt="Gallery image">
-          <div class="gallery-actions">
-            <button type="button" class="gallery-delete btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>
-      `);
-      container.append(card);
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// delete gallery item
-$('#galleryContainer').on('click', '.gallery-delete', function () {
-  const idx = Number($(this).closest('.gallery-item').data('index'));
-  if (!Number.isFinite(idx)) return;
-  shotGalleryArray.splice(idx, 1);
-  renderGallery();
-});
 
 // ---------- Video input ----------
 /* Add this HTML where appropriate:
@@ -1695,10 +1763,347 @@ document.getElementById('replaceVideoBtn').addEventListener('click', async funct
   document.getElementById('videoInput').click();
 });
 
+
+
+    // Handle input click selection (multi files)
+    $("#uploadImage").on("change", function () {
+        const files = Array.from(this.files);
+        newGallery.push(...files);
+        renderGallery();
+        this.value = "";
+    });
+
+    // Drag & Drop Support
+    const uploadBox = document.getElementById("uploadBox");
+
+    uploadBox.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadBox.classList.add("dragover");
+    });
+
+    uploadBox.addEventListener("dragleave", () => {
+        uploadBox.classList.remove("dragover");
+    });
+
+    uploadBox.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadBox.classList.remove("dragover");
+
+        const files = Array.from(e.dataTransfer.files).filter(
+            (file) => file.type.startsWith("image/")
+        );
+
+        newGallery.push(...files);
+        renderGallery();
+    });
+
+    // Clicking the box opens selector
+    $("#uploadBox").on("click", () => {
+        $("#uploadImage").trigger("click");
+    });
+
+
+
+function renderGallery() {
+    const container = $("#galleryContainer");
+    container.empty();
+
+    if (existingGallery.length === 0 && newGallery.length === 0) {
+        container.html('<p class="text-muted text-center">No gallery images</p>');
+        return;
+    }
+
+      existingGallery.forEach((img, idx) => {
+        container.append(`
+            <div class="gallery-item" data-type="existing" data-index="${idx}">
+                <img src="${img.url}">
+                <button class="gallery-delete btn btn-danger btn-sm">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+        `);
+    });
+
+      newGallery.forEach((file, idx) => {
+          const src = URL.createObjectURL(file);
+          container.append(`
+              <div class="gallery-item" data-type="new" data-index="${idx}">
+                  <img src="${src}">
+                  <button class="gallery-delete btn btn-danger btn-sm">
+                      <i class="fa fa-trash"></i>
+                  </button>
+              </div>
+          `);
+      });
+
+}
+
+$("#uploadImage").on("change", function () {
+    const files = Array.from(this.files);
+    newGallery.push(...files);
+    renderGallery();
+    this.value = "";
+});
+
+$("#galleryContainer").on("click", ".gallery-delete", function () {
+    const box = $(this).closest(".gallery-item");
+    const type = box.data("type");
+    const idx = box.data("index");
+
+    if (type === "existing") {
+        existingGallery.splice(idx, 1);
+    } else {
+        newGallery.splice(idx, 1);
+    }
+
+    renderGallery();
+});
+/* ============================================================
+   CLEAN IMAGE MANAGEMENT SYSTEM
+   Supports:
+   - existing images from server
+   - uploading new images
+   - deleting
+   - set as main
+   - correct unified index
+=============================================================== */
+
+// UNIFIED LIST
+function allImages() {
+    return [
+        ...existingImages.map(img => ({ type: "existing", img })),
+        ...newImages.map(file => ({ type: "new", img: file }))
+    ];
+}
+
+// RENDER ALL IMAGES
+function renderImages() {
+    const container = $("#imagePreviewContainer");
+    container.empty();
+
+    const list = allImages();
+    if (list.length === 0) {
+        container.html('<p class="text-muted">No images selected</p>');
+        $("#removeAllBtn").hide();
+        return;
+    }
+
+    list.forEach((item, idx) => {
+        let imgSrc = item.type === "existing"
+            ? item.img.url
+            : URL.createObjectURL(item.img);
+
+        container.append(`
+            <div class="image-preview-box" data-type="${item.type}" data-index="${idx}">
+                <div class="image-preview">
+                    <img src="${imgSrc}">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-danger btn-sm btn-delete">Delete</button>
+                    <button class="btn btn-warning btn-sm btn-main">
+                        ${idx === mainImageIndex ? "Main" : "Set Main"}
+                    </button>
+                </div>
+            </div>
+        `);
+    });
+
+    $("#removeAllBtn").show();
+}
+
+// ON SELECT NEW FILES
+$("#images").on("change", function () {
+    const files = Array.from(this.files);
+    newImages.push(...files);
+    renderImages();
+    this.value = "";
+});
+
+// DELETE HANDLER
+$("#imagePreviewContainer").on("click", ".btn-delete", function () {
+    const box = $(this).closest(".image-preview-box");
+    const type = box.data("type");
+    const idx = box.data("index");
+
+    if (type === "existing") {
+        existingImages.splice(idx, 1);
+    } else {
+        newImages.splice(idx - existingImages.length, 1);
+    }
+
+    // adjust main index
+    if (mainImageIndex === idx) mainImageIndex = 0;
+    renderImages();
+});
+
+// SET MAIN HANDLER
+$("#imagePreviewContainer").on("click", ".btn-main", function () {
+    const idx = $(this).closest(".image-preview-box").data("index");
+    mainImageIndex = idx; // unified index
+    renderImages();
+});
+
+// REMOVE ALL
+$("#removeAllBtn").on("click", function () {
+    existingImages = [];
+    newImages = [];
+    mainImageIndex = 0;
+    renderImages();
+});
+
+
+
+
+const PACKAGE_ID = "{{ $id }}";
+function fillForm(data) {
+
+    // INFORMATION
+    $("input[placeholder='Switzerland city tour']").val(data.information.title);
+    $("input[placeholder='Switzerland best city']").val(data.information.subtitle);
+    $("input[placeholder='20,30... etc']").val(data.information.noofriders);
+    $("textarea[name='description']").val(data.information.description);
+
+    // KEYWORDS
+    $("input[placeholder='Keyword']").val(data.information.keyword.join(", "));
+
+    // PLACE & TOUR SELECT
+   // PLACE
+    const placeOption = $(`#placeList li[data-value='${data.place_id}']`);
+    if (placeOption.length) {
+        $("#placeDropdown .option").removeClass("selected focus");
+        placeOption.addClass("selected focus");
+        $("#placeDropdown .current").text(placeOption.text());
+        $("#placeDropdown").attr("data-selected-id", data.place_id);
+    }
+
+  // TOUR
+    const tourOption = $(`#tourList li[data-value='${data.tour_id}']`);
+    if (tourOption.length) {
+        $("#tourDropdown .option").removeClass("selected focus");
+        tourOption.addClass("selected focus");
+        $("#tourDropdown .current").text(tourOption.text());
+        $("#tourDropdown").attr("data-selected-id", data.tour_id);
+    }
+
+    // TYPE DROPDOWN
+   // TYPE
+    const typeOption = $(`#typeList li[data-value='${data.information.type}']`);
+    if (typeOption.length) {
+        $("#typeDropdown .option").removeClass("selected focus");
+        typeOption.addClass("selected focus");
+        $("#typeDropdown .current").text(typeOption.text());
+        $("#typeDropdown").attr("data-selected-id", data.information.type);
+    }
+
+    // WHAT TO EXPECT
+    $("#startingpoint").val(data.information.whattoexpect.startingpoint);
+    $("#endingpoint").val(data.information.whattoexpect.endingpoint);
+    $("#departuretime").val(data.information.whattoexpect.departuretime);
+    $("#difficultylevel").val(data.information.whattoexpect.difficultylevel);
+
+    // HIGHLIGHT (information)
+    $("#highlightList").empty();
+    data.information.highlight.forEach(h => {
+        $("#highlightList").append(`
+            <li class="mb-2 d-flex align-items-center">
+                <input type="text" class="form-control me-2" value="${h}" style="flex:1;">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
+            </li>
+        `);
+    });
+
+    // LOCATIONSHARE
+    $("textarea[name='descriptionLocation']").val(data.locationshare.description);
+    $("#highlightListLocation").empty();
+    data.locationshare.highlight.forEach(h => {
+        $("#highlightListLocation").append(`
+            <li class="mb-2 d-flex align-items-center">
+                <input type="text" class="form-control me-2" value="${h}" style="flex:1;">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
+            </li>
+        `);
+    });
+
+    // PRICING
+    $("input[placeholder='₹ 3215']").val(data.pricing);
+
+    // TOUR DAYS
+    tourDaysContainer.innerHTML = "";
+    dayIndex = 1;
+
+    data.tour.forEach((day, i) => {
+        const block = createDayBlock(dayIndex);
+        $(block).find(".emoji-input").val(day.icon);
+        $(block).find("select").val(day.period);
+        $(block).find("input[placeholder='Enter City Name']").val(day.location);
+        $(block).find("input[placeholder='From – To or Short Subtitle']").val(day.locationSubtitle);
+        $(block).find("textarea").val(day.locationDescription);
+        tourDaysContainer.appendChild(block);
+        dayIndex++;
+    });
+      renumberDays();          // ensure correct day numbers
+      bindRemoveButtons();     // 🔥 now remove button will work
+
+
+
+
+
+
+    // SERVICES (preselect)
+    setTimeout(() => {
+        selectedServices = data.services_details;
+        renderAll();
+        renderSelected();
+    }, 1200);
+
+    // IMAGES (package images - load preview)
+    // IMAGES (package images - load preview)
+      existingImages = (data.information.images || []).map(img => ({
+          url: APP_URL + "/" + img.url,
+          is_main: img.is_main ? true : false
+      }));
+
+      mainImageIndex = existingImages.findIndex(i => i.is_main);
+      if (mainImageIndex < 0) mainImageIndex = 0;
+
+      renderImages(); // ✅ use the new unified renderer
+
+      // SHOT GALLERY (load existing gallery from server)
+      existingGallery = (data.information.shot_gallery || []).map(img => ({
+          url: APP_URL + "/" + img.url
+      }));
+      newGallery = [];
+      renderGallery();
+
+
+
+  
+
+    // VIDEO URL
+    uploadedVideoPath = data.information.video;
+    $("#uploadStatus").text(uploadedVideoPath ? "Existing video loaded" : "No video");
+}
+
+fetch(`${APP_URL}/api/package/${PACKAGE_ID}`)
+  .then(res => res.json())
+  .then(packageData => {
+      loadedPackage = packageData;
+      fillForm(packageData);
+  });
+
 // ---------- Form submit (build FormData) ----------
 $('.button-add').on('click', function (e) {
   e.preventDefault();
-
+  Swal.fire({
+        title: "Updating Package...",
+        text: "Please wait while we save your changes.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
   // gather your existing information object (as before)
   const information = {
     title: $("input[placeholder='Switzerland city tour']").val()?.trim(),
@@ -1754,49 +2159,76 @@ $('.button-add').on('click', function (e) {
   fd.append('place_id', place_id ?? '');
   fd.append('tour_id', tour_id ?? '');
   fd.append('pricing', pricing);
+   /* ============================================================
+   IMAGE + GALLERY FORM DATA BUILDER
+=============================================================== */
 
-  // 3) images_meta: index and is_main, we will also append files as images[]
-  const imagesMeta = filesArray.map((f, idx) => ({ index: idx, is_main: idx === mainImageIndex }));
-  fd.append('images_meta', JSON.stringify(imagesMeta));
+// PACKAGE IMAGES
+existingImages.forEach((img, i) => {
+    fd.append(`existing_images[${i}][url]`, img.url);
+    fd.append(`existing_images[${i}][is_main]`, (mainImageIndex === i) ? 1 : 0);
+});
 
-  // 4) append images files in the same order (so server can prefer first as main if desired)
-  filesArray.forEach((file, idx) => {
-    // key names: images[0], images[1] ... (common pattern)
-    fd.append(`images[${idx}]`, file, file?.name || `image_${idx}.jpg`);
-  });
+newImages.forEach((file, i) => {
+    fd.append(`new_images[${i}]`, file);
+});
 
-  // 5) append shot gallery files (separate array)
-  shotGalleryArray.forEach((file, idx) => {
-    fd.append(`shotgallery[${idx}]`, file, file?.name || `shot_${idx}.jpg`);
-  });
+// unified main index
+fd.append("main_index", mainImageIndex);
 
-  
+// SHOT GALLERY
+existingGallery.forEach((img, i) => {
+    fd.append(`existing_gallery[${i}]`, img.url);
+});
+
+newGallery.forEach((file, i) => {
+    fd.append(`new_gallery[${i}]`, file);
+});
+
 
   // Example: send with fetch
-  fetch(`${APP_URL}/api/package`, {
-    method: 'POST',
-    body: fd,
+ fetch(`${APP_URL}/api/package/${PACKAGE_ID}`, {
+    method: "POST",
     headers: {
-      // don't set Content-Type; browser sets boundary for multipart/form-data
-      'Accept': 'application/json',
-      // Add auth header if needed: 'Authorization': 'Bearer TOKEN'
-    }
-  })
-  .then(async res => {
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Server responded ${res.status}: ${txt}`);
-    }
-    return res.json();
-  })
-  .then(data => {
-    console.log('Upload success', data);
-    // handle success (redirect / show toast / reset form)
-  })
-  .catch(err => {
-    console.error('Upload failed', err);
-    alert('Upload failed: ' + err.message);
-  });
+        "X-HTTP-Method-Override": "PUT",
+        "Accept": "application/json"
+    },
+    body: fd
+}) .then(async res => {
+        let data;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error("Invalid JSON response from server.");
+        }
+
+        if (!res.ok) {
+            throw new Error(data.message || "Something went wrong");
+        }
+
+        // ===========================
+        // SUCCESS SWEETALERT
+        // ===========================
+        Swal.fire({
+            icon: "success",
+            title: "Updated Successfully!",
+            text: "Your package has been updated.",
+            confirmButtonColor: "#28a745",
+        });
+
+        return data;
+    })
+    .catch(err => {
+        // ===========================
+        // ERROR SWEETALERT
+        // ===========================
+        Swal.fire({
+            icon: "error",
+            title: "Update Failed",
+            html: `<p style="text-align:left;">${err.message}</p>`,
+            confirmButtonColor: "#d33",
+        });
+    });
 });
 
       </script>

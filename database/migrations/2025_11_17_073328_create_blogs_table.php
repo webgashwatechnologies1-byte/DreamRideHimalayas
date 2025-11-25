@@ -21,7 +21,6 @@ return new class extends Migration
                 $table->json('tags')->nullable();             // ["travel","mountains"]
                 $table->json('meta_description')->nullable(); // SEO meta
                 $table->json('comments')->nullable();         // list of comment objects
-                $table->string('thumbnail')->nullable();
                 $table->timestamps();
             });
         }

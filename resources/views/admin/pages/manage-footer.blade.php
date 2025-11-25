@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/app/css/map.min.css">
 
   <!-- Optional: Bootstrap & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"> --}}
 
 </head>
 <body class="body header-fixed">
@@ -59,10 +59,13 @@
         </div>
 </div>
         </main>
+       @include('admin.components.footer')
+
       </div>
     </div>
   </div>
 </body>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 <script>
 const API_BASE = '/api';

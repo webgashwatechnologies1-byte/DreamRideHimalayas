@@ -74,6 +74,7 @@
 
                 </section>
             </main>
+       @include('admin.components.footer')
 
         </div>
     </div>
@@ -99,6 +100,7 @@
     font-weight: bold;
 }
 </style>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 <script>
 (() => {

@@ -454,149 +454,125 @@ public function show($id)
 
     // PUT/PATCH /packages/{id}
      public function update(Request $request, $id)
-        {
-            $package = Packages::findOrFail($id);
-
-            // -------------------------
-            // VALIDATION
-            // -------------------------
-            $validated = $request->validate([
-                'information'   => 'required',
-                'tour'          => 'nullable',
-                'locationshare' => 'nullable',
-                'feature'       => 'nullable',
-                'services'      => 'nullable',
-                'pricing'       => 'required|integer',
-                'tour_id'       => 'required|exists:tours,id',
-                'place_id'      => 'required|exists:places,id',
-
-                'images.*'      => 'sometimes|file|image|max:5120',
-                'shotgallery.*' => 'sometimes|file|image|max:5120',
-                'video'         => 'sometimes|file|mimetypes:video/mp4,video/quicktime|max:51200',
-
-                'images_meta'   => 'nullable',
-            ]);
-
-            // decode JSON strings from FormData
-            $information    = json_decode($request->input('information'), true);
-            $tour           = json_decode($request->input('tour', '[]'), true);
-            $locationshare  = json_decode($request->input('locationshare', '[]'), true);
-            $feature        = json_decode($request->input('feature', '[]'), true);
-            $services       = json_decode($request->input('services', '[]'), true);
-            $imagesMeta     = json_decode($request->input('images_meta', '[]'), true);
-
-            // =====================================================================
-            // DELETE OLD MEDIA ONLY IF NEW MEDIA IS PROVIDED
-            // =====================================================================
-
-            /* ----------------------------
-            DELETE OLD IMAGES (if new uploaded)
-            ----------------------------- */
-            $oldImages = $package->information['images'] ?? [];
-            if ($request->hasFile('images')) {
-                foreach ($oldImages as $old) {
-                    if (!empty($old['url'])) {
-                        $path = str_replace('storage/', '', $old['url']);
-                        Storage::disk('public')->delete($path);
-                    }
+            {
+                $package = Packages::findOrFail($id);
+                function cleanUrl($url) {
+                    return preg_replace('/^https?:\/\/[^\/]+\//', '', $url);
                 }
-            }
 
-            /* ----------------------------
-            DELETE OLD SHOT GALLERY (if new uploaded)
-            ----------------------------- */
-            $oldShots = $package->information['shot_gallery'] ?? [];
-            if ($request->hasFile('shotgallery')) {
-                foreach ($oldShots as $old) {
-                    if (!empty($old['url'])) {
-                        $path = str_replace('storage/', '', $old['url']);
-                        Storage::disk('public')->delete($path);
-                    }
-                }
-            }
+                // -------------------------
+                // VALIDATION
+                // -------------------------
+                $validated = $request->validate([
+                    'information'   => 'required',
+                    'tour'          => 'nullable',
+                    'locationshare' => 'nullable',
+                    'services'      => 'nullable',
+                    'pricing'       => 'required|integer',
+                    'tour_id'       => 'required|exists:tours,id',
+                    'place_id'      => 'required|exists:places,id',
+                ]);
 
-            /* ----------------------------
-            DELETE OLD VIDEO (if new uploaded)
-            ----------------------------- */
-            $oldVideo = $package->information['video'] ?? null;
-            if ($request->hasFile('video') && $oldVideo) {
-                $path = str_replace('storage/', '', $oldVideo);
-                Storage::disk('public')->delete($path);
-            }
+                // Decode JSON
+                $information    = json_decode($request->information, true);
+                $tour           = json_decode($request->tour ?? '[]', true);
+                $locationshare  = json_decode($request->locationshare ?? '[]', true);
+                $services       = json_decode($request->services ?? '[]', true);
 
-            // =====================================================================
-            // SAVE NEW MEDIA
-            // =====================================================================
+                // ===============================================================
+                //   PACKAGE IMAGES MERGE: existing_images + new_images
+                // ===============================================================
 
-            /* ----------------------------
-            SAVE NEW IMAGES
-            ----------------------------- */
-            $newImages = [];
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $file) {
-                    $path = $file->store('packages/images', 'public');
-                    $newImages[] = [
-                        'url'     => 'storage/' . $path,
-                        'is_main' => $imagesMeta[$index]['is_main'] ?? false,
+                $finalImages = [];
+
+                // 1️⃣ Existing images (keep them exactly as passed)
+               $existing = $request->input('existing_images', []);
+                foreach ($existing as $img) {
+                    $finalImages[] = [
+                        "url"     => cleanUrl($img["url"]),
+                        "is_main" => $img["is_main"] ?? false,
                     ];
                 }
-            } else {
-                // keep old images if not uploaded new ones
-                $newImages = $oldImages;
-            }
 
-            /* ----------------------------
-            SAVE NEW SHOT GALLERY
-            ----------------------------- */
-            $newShotGallery = [];
-            if ($request->hasFile('shotgallery')) {
-                foreach ($request->file('shotgallery') as $index => $file) {
-                    $path = $file->store('packages/shotgallery', 'public');
-                    $newShotGallery[] = [
-                        'url'     => 'storage/' . $path,
-                        'is_main' => false,
+
+                // 2️⃣ Upload new images
+                if ($request->hasFile('new_images')) {
+                    foreach ($request->file('new_images') as $file) {
+                        $path = $file->store("packages/images", "public");
+                        $finalImages[] = [
+                            "url"     => "storage/" . $path,
+                            "is_main" => false, // default
+                        ];
+                    }
+                }
+
+                // 3️⃣ Apply main_index
+                $mainIndex = intval($request->main_index ?? 0);
+                foreach ($finalImages as $i => $img) {
+                    $finalImages[$i]['is_main'] = ($i === $mainIndex);
+                }
+
+
+                // ===============================================================
+                //   SHOT GALLERY MERGE: existing_gallery + new_gallery
+                // ===============================================================
+                $finalGallery = [];
+
+                // Existing
+               $existingGallery = $request->input("existing_gallery", []);
+                foreach ($existingGallery as $url) {
+                    $finalGallery[] = [
+                        "url"     => cleanUrl($url),
+                        "is_main" => false
                     ];
                 }
-            } else {
-                $newShotGallery = $oldShots;
+
+
+                // New
+                if ($request->hasFile("new_gallery")) {
+                    foreach ($request->file("new_gallery") as $file) {
+                        $path = $file->store("packages/shotgallery", "public");
+                        $finalGallery[] = [
+                            "url"     => "storage/" . $path,
+                            "is_main" => false
+                        ];
+                    }
+                }
+
+
+                // ===============================================================
+                //   VIDEO (Resumable upload path already sent as string)
+                // ===============================================================
+                $videoPath = $information['video'] ?? null;
+
+
+                // ===============================================================
+                //   FINAL MERGE INTO INFORMATION JSON
+                // ===============================================================
+                $information["images"]       = $finalImages;
+                $information["shot_gallery"] = $finalGallery;
+                $information["video"]        = $videoPath;
+
+
+                // ===============================================================
+                //   UPDATE PACKAGE
+                // ===============================================================
+                $package->update([
+                    'information'    => $information,
+                    'tour'           => $tour,
+                    'locationshare'  => $locationshare,
+                    'services'       => $services,
+                    'pricing'        => $validated['pricing'],
+                    'tour_id'        => $validated["tour_id"],
+                    'place_id'       => $validated["place_id"],
+                ]);
+
+                return response()->json([
+                    "message" => "Package updated successfully",
+                    "package" => $package
+                ]);
             }
 
-            /* ----------------------------
-            SAVE NEW VIDEO
-            ----------------------------- */
-            $newVideoPath = $oldVideo;
-            if ($request->hasFile('video')) {
-                $file = $request->file('video');
-                $path = $file->store('packages/videos', 'public');
-                $newVideoPath = 'storage/' . $path;
-            }
-
-            // =====================================================================
-            // MERGE INTO INFORMATION JSON
-            // =====================================================================
-            $information['images']        = $newImages;
-            $information['shot_gallery']  = $newShotGallery;
-            $information['video']         = $newVideoPath;
-
-            // =====================================================================
-            // UPDATE THE PACKAGE RECORD
-            // =====================================================================
-            $package->update([
-                'information'    => $information,
-                'tour'           => $tour,
-                'locationshare'  => $locationshare,
-                'feature'        => $feature,
-                'services'       => $services,
-                'pricing'        => $validated['pricing'],
-                'tour_id'        => $validated['tour_id'],
-                'place_id'       => $validated['place_id'],
-            ]);
-
-            return response()->json([
-                'message' => 'Package updated successfully',
-                'package' => $package,
-            ], 200);
-        }
 
 
     // DELETE /packages/{id}

@@ -154,30 +154,8 @@
 
                 </main>
 
-                <footer class="footer footer-dashboard">
-                    <div class="tf-container full">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <p class="text-white">Made with ❤️ by  Gashwa Technologies.</p>
-                            </div>
-                            <div class="col-lg-6">
-                                <ul class="menu-footer flex-six">
-                                    <li>
-                                        <a href="#">Privacy & Policy</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Licensing</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Instruction</a>
-                                    </li>
-                                </ul>
+                   @include('admin.components.footer')
 
-                            </div>
-                        </div>
-
-                    </div>
-                </footer>
 
                 <!-- Bottom -->
             </div>
@@ -224,8 +202,9 @@
     <script src="/app/js/map.js"></script>
     <script src="/app/js/shortcodes.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
-    <script src="/app/js/auth-validator.js"></script>`r`n    <script src="/app/js/main.js"></script>
+    <script src="/app/js/auth-validator.js"></script>   <script src="/app/js/main.js"></script>
     <script>
 let packages = [];
 

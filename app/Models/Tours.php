@@ -10,7 +10,7 @@ class Tours extends Model
     use HasFactory;
     protected $table = "tours";
     protected $fillable = [
-        "name","image","place_id","category_id" 
+        "name","image","place_id"
     ];
 
       // One Tour belongs to one Place
@@ -19,10 +19,7 @@ class Tours extends Model
                 return $this->belongsTo(Places::class, 'place_id', 'id');
             }
 
-        public function category()
-        {
-            return $this->belongsTo(Category::class);
-        }
+      
 
       // One Tour has many Packages
       public function packages()

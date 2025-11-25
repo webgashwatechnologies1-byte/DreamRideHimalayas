@@ -72,14 +72,7 @@
                       <option value="">Loading places...</option>
                     </select>
                   </div>
-                   <div class="grid-input-2 mb-45">
-                  <div class="input-wrap">
-                    <label>Select Category</label>
-                    <select name="category_id" id="categoryDropdown" class="form-select" required>
-                      <option value="">Loading categories...</option>
-                    </select>
-                  </div>
-                </div>
+                   
                 <div class="input-wrap">
                   <label>Tour Image</label>
                   <div class="upload-image-add-car mb-30">
@@ -103,22 +96,8 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <div class="row">
-              <div class="col-lg-6">
-                <p class="text-white">Made with ❤️ by Gashwa Technologies.</p>
-              </div>
-              <div class="col-lg-6">
-                <ul class="menu-footer flex-six">
-                  <li><a href="#">Privacy & Policy</a></li>
-                  <li><a href="#">Licensing</a></li>
-                  <li><a href="#">Instruction</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
+              @include('admin.components.footer')
+
       </div>
     </div>
   </div>
@@ -128,6 +107,7 @@
   <script src="/app/js/bootstrap.min.js"></script>
   <script src="/app/js/plugin.js"></script>
   <script src="/app/js/main.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
   <script>
     const APP_URL = "{{ config('app.url') }}";
@@ -143,7 +123,7 @@
         const data = await resp.json();
         const select = $('#placeDropdown');
 
-        select.empty().append('<option value="">Select Category</option>');
+        select.empty().append('<option value="">Select Place</option>');
 
         if (Array.isArray(data.data)) {
             // if API is paginated
@@ -162,37 +142,14 @@
 }
 
 // loay
- async function loadCategoriesPlace() {
-    try {
-        const resp = await fetch(`${APP_URL}/api/get-all-categories`);
-        const data = await resp.json();
-        const select = $('#categoryDropdown');
 
-        select.empty().append('<option value="">Select Category</option>');
-
-        if (Array.isArray(data.data)) {
-            // if API is paginated
-            data.data.forEach(category => {
-                select.append(`<option value="${category.id}">${category.name}</option>`);
-            });
-        } else if (Array.isArray(data)) {
-            // if API returns plain array
-            data.forEach(category => {
-                select.append(`<option value="${category.id}">${category.name}</option>`);
-            });
-        }
-    } catch (err) {
-        console.error('Failed to load Category :', err);
-    }
-}
 loadTourPlace();
-loadCategoriesPlace();
+
       // ===== Fetch Tour Data =====
       $.get(`${APP_URL}/api/tours/${tourId}`, function (data) {
         $('#name').val(data.name);
         $('#placeDropdown').val(data?.place_id);
-        $('#categoryDropdown').val(data?.category_id);
-
+        
         if (data.image) {
           currentImage = data.image;
           $('#tourImagePreview').html(`

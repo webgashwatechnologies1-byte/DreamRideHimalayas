@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="/app/css/app.css">
     <link rel="stylesheet" href="/app/css/map.min.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+{{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
 
     <!-- Favicon and Touch Icons  -->
     <link rel="shortcut icon" href="/assets/images/dreamridelogo.webp">
@@ -181,6 +181,7 @@
 
                 </main>
 
+       @include('admin.components.footer')
                
 
                 <!-- Bottom -->
@@ -228,6 +229,7 @@
     <script src="/app/js/map.min.js"></script>
     <script src="/app/js/map.js"></script>
     <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
     <script src="/app/js/auth-validator.js"></script>   <script src="/app/js/main.js"></script>
 <script>

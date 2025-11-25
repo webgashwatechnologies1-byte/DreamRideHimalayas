@@ -161,7 +161,7 @@
     Route::post('/editor/upload-video', [BlogEditorUploadController::class, 'uploadVideo']);
     Route::delete('/editor-delete', [BlogEditorUploadController::class, 'delete']);
     Route::apiResource('/contacts', ContactController::class)->only([
-        'index', 'store', 'destroy'
+        'index', 'store', 'destroy',"show"
     ]);
     // For Admin Panel Routes to Controll System api and to perform crud operations 
     // Vehicle Route

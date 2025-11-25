@@ -293,6 +293,7 @@
 <script src="/app/js/map.js"></script>
 <script src="/app/js/shortcodes.js"></script>
 <script src="/app/js/main.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
 
 <script>
 

@@ -90,22 +90,8 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <div class="row">
-              <div class="col-lg-6">
-                <p class="text-white">Made with ❤️ by Gashwa Technologies.</p>
-              </div>
-              <div class="col-lg-6">
-                <ul class="menu-footer flex-six">
-                  <li><a href="#">Privacy & Policy</a></li>
-                  <li><a href="#">Licensing</a></li>
-                  <li><a href="#">Instruction</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
+          @include('admin.components.footer')
+      
       </div>
     </div>
   </div>
@@ -115,6 +101,8 @@
   <script src="/app/js/bootstrap.min.js"></script>
   <script src="/app/js/plugin.js"></script>
   <script src="/app/js/main.js"></script>
+    <script src="/app/js/admin-auth-guard.js"></script>
+  {!! ToastMagic::scripts() !!}
 
   <script>
     const APP_URL = "{{ config('app.url') }}";
@@ -223,6 +211,5 @@
     });
   </script>
 
-  {!! ToastMagic::scripts() !!}
 </body>
 </html>

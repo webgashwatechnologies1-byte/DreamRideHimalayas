@@ -110,15 +110,8 @@
           </section>
         </main>
 
-        <footer class="footer footer-dashboard">
-          <div class="tf-container full">
-            <div class="row">
-              <div class="col-lg-6">
-                <p class="text-white">Made with ❤️ by Gashwa Technologies</p>
-              </div>
-            </div>
-          </div>
-        </footer>
+              @include('admin.components.footer')
+
       </div>
     </div>
   </div>
@@ -128,6 +121,9 @@
   <script src="/app/js/jquery.nice-select.min.js"></script>
   <script src="/app/js/bootstrap.min.js"></script>
   <script src="/app/js/main.js"></script>
+  {!! ToastMagic::scripts() !!}
+    <script src="/app/js/admin-auth-guard.js"></script>
+
   <script>
     const APP_URL = "{{ config('app.url') }}";
     const VEHICLE_ID = "{{ $id }}"; // from route /edit/{id}
@@ -291,6 +287,5 @@
   });
   </script>
 
-  {!! ToastMagic::scripts() !!}
 </body>
 </html>
