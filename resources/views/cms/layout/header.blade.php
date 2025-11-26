@@ -52,7 +52,6 @@ function externalLinkTarget($url) {
         padding-left: 209px;
         padding-right: 109px;
         background-color: #ffc107 !important;
-        padding-top: 4px;
         padding-bottom: 4px;
     }
 
@@ -128,6 +127,14 @@ function externalLinkTarget($url) {
         flex-direction: column;
         gap: 10px;
     }
+.main-header {
+   margin-top: 0 !important;
+   padding-top: 0 !important;
+}
+
+.body.header-fixed #pagee {
+   padding-top: 0 !important;
+}
 
     /* .trip-item {
     flex: 0 0 48%; 
@@ -200,7 +207,8 @@ function externalLinkTarget($url) {
         }
     }
 </style>
-<header class="main-header flex">
+
+<header class="main-header   flex">
     <!-- Header Lower -->
     <div id="header">
         <div class="header-top ">
@@ -246,11 +254,11 @@ function externalLinkTarget($url) {
                 </div>
             </div>
         </div>
-        <div class="header-lower">
+        <div class="header-lower ">
             <div class="tf-container full">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="inner-container flex justify-space align-center">
+                        <div class=" flex justify-space align-center">
                             <!-- Logo Box -->
                             <div class="mobile-nav-toggler mobie-mt mobile-button">
                                 <i class="icon-Vector3"></i>
@@ -287,14 +295,14 @@ function externalLinkTarget($url) {
                                                         {{-- Inject Bike Trips menu after 3rd item --}}
                                                         @if($index == 2)
                                                             <li class="dropdown2">
-                                                                <a href="/pages/bike-trips">Bike Trips</a>
+                                                                <a href="#">Bike Trips</a>
 
                                                                 <ul class="dropdown-content">
 
                                                                     @foreach($places as $place)
                                                                         @if($place->tours->count() > 0)
                                                                             <li class="trip-section">
-                                                                                <h3>{{ $place->name }}</h3>
+                                                                                <h3><a href="/tour/{{$place->id}}">{{ $place->name }}</a></h3>
 
                                                                                 <div class="trip-items">
                                                                                     @foreach($place->tours as $tour)

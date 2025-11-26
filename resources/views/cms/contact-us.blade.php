@@ -108,9 +108,11 @@
 
     <div id="wrapper">
         <div id="pagee" class="clearfix">
+            <header class="main-header flex">
 
             <!-- Main Header -->
            @include('cms.layout.header')
+</header>
             
             <!-- End Main Header -->
             <main id="main">
@@ -254,7 +256,8 @@
                
 
 
-                <section class="mb--93 bg-1">
+             <section class="bg-1  mt-20"  style="margin-bottom:-55px;">
+
                     <div class="tf-container">
                         <div class="callt-to-action flex-two z-index3 relative">
                             <div class="callt-to-action-content flex-three">

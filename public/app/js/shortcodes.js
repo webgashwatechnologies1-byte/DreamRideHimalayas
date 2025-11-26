@@ -260,36 +260,34 @@
         }
     };
 
-    var headerFixed = function () {
-        if ($('body').hasClass('header-fixed')) {
-            var nav = $('.header-lower');
-            if (nav.length) {
-                var
-                    offsetTop = nav.offset().top,
-                    headerHeight = nav.height(),
-                    injectSpace = $("<div>", {
-                        height: headerHeight
-                    }).insertAfter(nav);
-                injectSpace.hide();
+   var headerFixed = function () {
+            if ($('body').hasClass('header-fixed')) {
+                var nav = $('.header-lower');
+                if (nav.length) {
+                    var offsetTop = nav.offset().top,
+                        headerHeight = nav.height();
 
-                $(window).on('load scroll', function () {
-                    if ($(window).scrollTop() > offsetTop + headerHeight) {
-                        nav.addClass('is-fixed');
-                        injectSpace.show();
-                    } else {
-                        nav.removeClass('is-fixed');
-                        injectSpace.hide();
-                    }
+                    // ❌ REMOVE injected space div
+                    // var injectSpace = $("<div>", { height: headerHeight }).insertAfter(nav);
+                    // injectSpace.hide();
 
-                    if ($(window).scrollTop() > 500) {
-                        nav.addClass('is-small');
-                    } else {
-                        nav.removeClass('is-small');
-                    }
-                })
+                    $(window).on('load scroll', function () {
+                        if ($(window).scrollTop() > offsetTop + headerHeight) {
+                            nav.addClass('is-fixed');
+                        } else {
+                            nav.removeClass('is-fixed');
+                        }
+
+                        if ($(window).scrollTop() > 500) {
+                            nav.addClass('is-small');
+                        } else {
+                            nav.removeClass('is-small');
+                        }
+                    });
+                }
             }
-        }
-    };
+        };
+
 
     // img upload style 1
     $("#profileimg").click(function (e) {

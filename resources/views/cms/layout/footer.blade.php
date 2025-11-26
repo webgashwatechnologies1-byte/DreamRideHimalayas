@@ -2,11 +2,7 @@
     $footer = \App\Models\FooterSetting::single();
 @endphp
 
-@push('styles')
-<style>
-    /* your styles */
-</style>
-@endpush
+
 
 <footer class="footer footer-style1">
     <div class="tf-container">
@@ -38,7 +34,7 @@
 
             {{-- SERVICES --}}
             <div class="footer-service">
-                <h5 class="title">Services Req</h5>
+                <h5 class="title">Services</h5>
                 <ul class="footer-menu">
                     @foreach($footer->services as $srv)
                         <li><a href="{{ $srv['url'] }}">{{ $srv['label'] }}</a></li>

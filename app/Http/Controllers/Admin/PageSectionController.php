@@ -141,7 +141,7 @@ class PageSectionController extends Controller
     }
 
 
-    /* ============================================================
+    /* ============================================================public_path("uploads
        UPLOAD FILE
     ============================================================ */
     private function uploadFile(UploadedFile $file): string
@@ -188,71 +188,76 @@ class PageSectionController extends Controller
     }
 
 
-    public function postsUpdate(Request $request, PageSection $pageSection)
-                {
-                    // Validate incoming content array
-                    $request->validate([
-                        'content' => 'required|array',
-                    ]);
+   public function postsUpdate(Request $request, PageSection $pageSection)
+            {
+                // Validate incoming content array
+                $request->validate([
+                    'content' => 'required|array',
+                ]);
 
-                    $incoming = $request->content; // all text inputs
-                    $existing = $pageSection->content ?? []; // old saved JSON
+                $incoming = $request->content;
+                $existing = $pageSection->content ?? [];
 
-                    $final = [
-                        'title'    => $incoming['title'] ?? '',
-                        'subtitle' => $incoming['subtitle'] ?? '',
-                        'cards'    => [],
-                    ];
+                $final = [
+                    'title'    => $incoming['title'] ?? '',
+                    'subtitle' => $incoming['subtitle'] ?? '',
+                    'cards'    => [],
+                ];
 
-                    // Iterate over incoming cards
-                    if (!empty($incoming['cards'])) {
+                if (!empty($incoming['cards'])) {
 
-                        foreach ($incoming['cards'] as $index => $cardInput) {
+                    foreach ($incoming['cards'] as $index => $cardInput) {
 
-                            $cardFinal = [];
+                        $cardFinal = [];
 
-                            /** ------------------------------
-                             *  ICON
-                             * ------------------------------ */
-                            $cardFinal['icon'] = $cardInput['icon'] ?? '';
+                        // ICON
+                        $cardFinal['icon'] = $cardInput['icon'] ?? '';
 
-                            /** ------------------------------
-                             *  IMAGE
-                             * ------------------------------ */
-                            $fileKey = "content.cards.$index.image";
+                        // IMAGE
+                        $fileKey = "content.cards.$index.image";
 
-                            if ($request->hasFile($fileKey)) {
+                        if ($request->hasFile($fileKey)) {
 
-                                // delete old image
-                                if (!empty($existing['cards'][$index]['image'])) {
-                                    $oldPath = public_path($existing['cards'][$index]['image']);
-                                    if (file_exists($oldPath)) unlink($oldPath);
-                                }
-
-                                // upload new image
-                                $file = $request->file($fileKey);
-                                $name = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                                $file->move(public_path('uploads/posts'), $name);
-
-                                $cardFinal['image'] = "uploads/posts/" . $name;
-                            } else {
-                                // keep old image if exists
-                                $cardFinal['image'] = $existing['cards'][$index]['image'] ?? '';
+                            // delete old image
+                            if (!empty($existing['cards'][$index]['image'])) {
+                                $oldPath = dirname(base_path()) . '/public_html/' . $existing['cards'][$index]['image'];
+                                if (file_exists($oldPath)) unlink($oldPath);
                             }
 
-                            $final['cards'][] = $cardFinal;
+                            // upload new image outside Laravel
+                            $file = $request->file($fileKey);
+                            $name = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+                            $publicHtmlRoot = dirname(base_path()) . '/public_html';
+                            $destination = $publicHtmlRoot . '/storage/posts';
+
+                            if (!file_exists($destination)) {
+                                mkdir($destination, 0755, true);
+                            }
+
+                            $file->move($destination, $name);
+
+                            $cardFinal['image'] = "storage/posts/" . $name;
+
+                        } else {
+                            // keep old image
+                            $cardFinal['image'] = $existing['cards'][$index]['image'] ?? '';
                         }
+
+                        $final['cards'][] = $cardFinal;
                     }
-
-                    // SAVE
-                    $pageSection->update(['content' => $final]);
-
-                    return response()->json([
-                        'status'  => 'success',
-                        'message' => 'Posts section updated',
-                        'section' => $pageSection
-                    ]);
                 }
+
+                // SAVE
+                $pageSection->update(['content' => $final]);
+
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Posts section updated',
+                    'section' => $pageSection
+                ]);
+            }
+
 
 
      public function toursUpdate(Request $request, PageSection $pageSection)

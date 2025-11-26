@@ -36,7 +36,7 @@
 </style>
 <div class="admin-preview">
 
-<section class="widget-counter relative " style="margin-bottom: 200px">
+<section class="widget-counter relative " style="margin-bottom: 20px">
     <img src="/assets/images/page/couter-top.png" alt="image" class="counter-top">
     <img src="/assets/images/page/counter-bottom.png" alt="image" class="counter-bottom">
 
@@ -74,7 +74,7 @@
                 <div class="tf-counter center tf-countto">
 
                     <div class="icon " style="margin-bottom: 150px">
-                        <img src="/storage/{{ $c['image'] }}" width="90">
+                        <img src="/storage/{{ $c['image'] }}" width="90px">
                     </div>
 
                     <div class="number-counter" data-to="{{ $c['number'] }}" data-speed="2000">

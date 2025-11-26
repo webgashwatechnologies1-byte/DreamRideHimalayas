@@ -2707,7 +2707,7 @@
 }
 
 .counter-to {
-  padding-top: 170px;
+  padding-top: 88px;
   padding-bottom: 71px;
   background-image: url(../../assets/images/page/bg-counter.jpg);
   background-position: center;
@@ -3718,7 +3718,7 @@
   position: absolute;
   left: 53px;
   top: 10px;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 500;
   color: #4F545A;

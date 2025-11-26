@@ -13,11 +13,12 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $page->og_image ? asset('storage/' . $page->og_image) : asset('assets/images/dreamridelogo.webp') }}">
 @endsection
+
 @section('content')
 
     
 @foreach($sections as $section)
-    <div class="mt-4 mb-4">
+    <div>
         @includeIf("widgets.$section->section_type.render", [
         'content' => $section->content,
         'section' => $section

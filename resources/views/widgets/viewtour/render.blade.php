@@ -33,7 +33,7 @@
         {{-- Heading --}}
         <div class="row">
             <div class="col-lg-12">
-                <div class="center m0-auto w-text-heading mb-40">
+                <div class="center mx-auto w-text-heading mb-32">
                     <span class="sub-title-heading text-main mb-15">
                         {{ $content['subtitle'] ?? '' }}
                     </span>

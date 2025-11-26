@@ -12,7 +12,7 @@
 
         <div class="row">
             <div class="col-lg-12">
-                <div class="mb-40">
+                <div class="mb-40 mt-20">
                     <span class="sub-title-heading text-main mb-15">{{ $content['subtitle'] ?? '' }}</span>
                     <h2 class="title-heading">{{ $content['title'] ?? '' }}</h2>
                 </div>

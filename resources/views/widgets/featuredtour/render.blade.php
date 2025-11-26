@@ -36,7 +36,7 @@ $cards = $content['cards'] ?? [];
 </style>
 <div class="admin-preview">
 
-<section class="tour-package pd-main">
+<section class="tour-package py-5">
     <div class="tf-container flex-column align-items-center justify-content-center d-flex">
 
         <div class=" flex-column align-items-center justify-content-center d-flex w-text-heading">

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Frontend\PageController as FrontendPageController;
+use App\Http\Controllers\ToursController;
 
 // for adding pages
 
@@ -122,6 +123,7 @@ Route::get('/admin/category/edit/{id}', function ($id) {
 })->where('id', '[0-9]+')->name('admin.category.edit');
 
 
+Route::get('/tour/{id}', [ToursController::class, 'webShow']);
 
 // ✅ Explicit routes for Package pages
 Route::get('/admin/package/create', function () {

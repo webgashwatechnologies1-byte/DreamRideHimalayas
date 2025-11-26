@@ -8,7 +8,7 @@
 
 @endphp
 
-<section class="mb-93 mt-20">
+<section class=" bg-1 mt-20"  style="margin-bottom:-55px;">
     <div class="tf-container">
         <div class="callt-to-action flex-two">
             <div class="callt-to-action-content flex-three">

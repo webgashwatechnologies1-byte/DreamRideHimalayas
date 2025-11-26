@@ -24,6 +24,6 @@ class Tours extends Model
       // One Tour has many Packages
       public function packages()
       {
-          return $this->hasMany(Packages::class);
+          return $this->hasMany(Packages::class, 'tour_id', 'id');
       }
 }

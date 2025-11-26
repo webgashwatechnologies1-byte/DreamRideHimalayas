@@ -53,11 +53,17 @@ public function getAll()
     }
 
     // GET /api/place/{id}
-    public function show($id)
-    {
-        $place = Places::findOrFail($id);
-        return response()->json($place);
-    }
+   public function show($id)
+        {
+            $place = Places::with([
+                'tours' => function ($q) {
+                    $q->withCount('packages');   // Add package count for each tour
+                }
+            ])->findOrFail($id);
+
+            return response()->json($place);
+        }
+
 
     // PUT /api/place/{id}
     public function update(Request $request, $id)

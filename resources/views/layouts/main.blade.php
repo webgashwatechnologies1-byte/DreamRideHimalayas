@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>@yield('meta_title', 'DreamRide') </title>
+  <title>@yield('meta_title', 'DreamRideHimalaya') </title>
 
-  @yield('meta')
+    @yield('meta')
   {{-- Example using Bootstrap (or Tailwind if you prefer) --}}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
     <link rel="stylesheet" href="/app/css/app.css">
     <link rel="stylesheet" href="/app/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/app/css/map.min.css">
@@ -21,15 +21,18 @@
 
 </head>
 
-<body class="body header-fixed counter-scroll">
+<body class="body header-fixed ">
 
 
     <div id="wrapper">
         <div id="pagee" class="clearfix">
 
             <!-- Main Header -->
-           @include('cms.layout.header') 
-
+            <header class="main-header flex">
+                <!-- Header Lower -->
+                 @include('cms.layout.header') 
+               
+            </header>
             <!-- End Main Header -->
             <main id="main">
               @yield('content')
@@ -42,7 +45,7 @@
     </div>
     <a id="scroll-top" class="button-go"></a>
   
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
 
  <!-- Javascript -->
     <script src="/app/js/jquery.min.js"></script>

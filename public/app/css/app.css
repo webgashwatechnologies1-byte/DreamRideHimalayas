@@ -2628,7 +2628,7 @@
 }
 
 .counter-to {
-  padding-top: 170px;
+  padding-top: 80px;
   padding-bottom: 71px;
   background-image: url(../../assets/images/page/bg-counter.jpg);
   background-position: center;
@@ -2671,7 +2671,7 @@
 
 /*----------------------destination--------------------*/
 .widget-destination {
-  padding-top: 317px;
+  padding-top: 217px;
 }
 
 .grid-three-destination {
@@ -3676,7 +3676,7 @@
   position: absolute;
   left: 53px;
   top: 10px;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 500;
   color: #4F545A;
@@ -5231,7 +5231,7 @@
 
 .footer .footer-main {
   display: flex;
-  padding-top: 165px;
+  padding-top: 40px;
   padding-bottom: 77px;
 }
 
@@ -5244,7 +5244,7 @@
 }
 .footer-style1 .footer-main {
   display: flex;
-  padding-top: 165px;
+  padding-top: 80px;
   padding-bottom: 83px;
 }
 .footer-style1 .footer-main .title {
@@ -9679,7 +9679,9 @@ input[type=submit]:hover {
 .mb--93 {
   margin-bottom: -93px;
 }
-
+.mb--75 {
+    margin-bottom: -65px;
+}
 .mb--7em {
   margin-bottom: -7.6em;
 }

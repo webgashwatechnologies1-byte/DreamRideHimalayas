@@ -86,9 +86,30 @@ class ToursController extends Controller
     // GET /api/tour/{id}
     public function show($id)
     {
-        $tour = Tours::findOrFail($id);
-        return response()->json($tour);
+        $tour = Tours::withCount('packages')->findOrFail($id);
+
+         return response()->json([
+            "id" => $tour->id,
+            "name" => $tour->name,
+            "image" => $tour->image,
+            "place_id" => $tour->place_id,
+            "category_id" => $tour->category_id,
+            "created_at" => $tour->created_at,
+            "updated_at" => $tour->updated_at,
+            "packages" => $tour->packages_count
+        ]);
     }
+        public function webShow($id)
+            {
+                $place = \App\Models\Places::with(['tours' => function($q) {
+                    $q->withCount('packages');
+                }])->findOrFail($id);
+
+                return view('cms.leh', compact('place'));
+            }
+
+
+
 
     // PUT /api/place/{id}
     public function update(Request $request, $id)
