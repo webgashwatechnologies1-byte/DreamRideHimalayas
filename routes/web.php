@@ -13,7 +13,7 @@ use App\Http\Controllers\ToursController;
    
     Route::prefix('admin')->name('admin.')->group(function () {
 
-    // Pages
+    // Pagesto
     Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
     Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
     Route::post('/pages', [PageController::class, 'store'])->name('pages.store');

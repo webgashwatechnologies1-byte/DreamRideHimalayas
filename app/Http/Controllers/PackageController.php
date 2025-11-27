@@ -9,316 +9,419 @@ use App\Models\Amenities;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Places;
 use App\Models\Type;
 
 class PackageController extends Controller
 {
     // Get package via api pagination
-public function index(Request $request)
-{
-    $query = Packages::query();
+    public function index(Request $request)
+            {
+                $query = Packages::query();
 
-    /* ----------------------- FILTERS ----------------------- */
+                /* ---------------------------------------------------
+                DESTINATION → FILTER BY place_id
+                ----------------------------------------------------*/
+                if ($request->destination) {
 
-    // Destination (tour[].location)
-    if ($request->destination) {
-        $query->whereJsonContains('tour', [['location' => $request->destination]]);
-    }
+                    $place = Places::where('name', $request->destination)->first();
 
-    // Duration (count tour.length)
-    if ($request->duration) {
-        $query->whereRaw('JSON_LENGTH(tour) = ?', [$request->duration]);
-    }
+                    if ($place) {
+                        $query->where('place_id', $place->id);
+                    }
+                }
 
-    // Riders
-    if ($request->riders) {
-        $query->where('information->noofriders', $request->riders);
-    }
+                /* ---------------------------------------------------
+                TYPE → Front sends NAME but DB stores ID
+                ----------------------------------------------------*/
+                if ($request->type) {
 
-    // Price Range
-   if ($request->has('min_price') && $request->has('max_price')) {
-    $query->whereBetween('pricing', [
-        (int)$request->min_price,
-        (int)$request->max_price
-    ]);
-   }
+                    $type = Type::where('name', $request->type)->first();
 
+                    if ($type) {
+                        $query->where('information->type', $type->id);
+                    }
+                }
 
-    /* ----------------------- PAGINATION ----------------------- */
-    $packages = $query->paginate(6);
+                /* ---------------------------------------------------
+                DURATION → tour.length >= requested days
+                ----------------------------------------------------*/
+                if ($request->duration) {
+                    $minDays = (int) $request->duration;
+                    $query->whereRaw('JSON_LENGTH(tour) >= ?', [$minDays]);
+                }
 
-    /* ----------------------- MAP EACH PACKAGE ----------------------- */
-    $data = $packages->map(function ($package) {
+                /* ---------------------------------------------------
+                RIDERS FILTER (SPECIAL LOGIC)
+                ----------------------------------------------------*/
+                if ($request->riders) {
 
-        $info = $package->information ?? [];
-        $tour = $package->tour ?? [];
+                    $minRiders = (int) $request->riders;
 
-        $days = is_array($tour) ? count($tour) : 0;
-        $nights = $days > 1 ? $days - 1 : 0;
+                    // example: solo=1, duo=2, 5, 10, 15, 20
+                    if ($minRiders > 0) {
+                        $query->whereRaw("CAST(JSON_EXTRACT(information, '$.noofriders') AS UNSIGNED) >= ?", [$minRiders])
+                            ->orderByRaw("CAST(JSON_EXTRACT(information, '$.noofriders') AS UNSIGNED) ASC");
+                    }
+                }
 
-        $imageCount = isset($info['images']) ? count($info['images']) : 0;
-        $videoCount = isset($info['video']) && $info['video'] ? 1 : 0;
+                /* ---------------------------------------------------
+                PRICE RANGE
+                ----------------------------------------------------*/
+                if ($request->has('min_price') && $request->has('max_price')) {
+                    $query->whereBetween('pricing', [
+                        (int)$request->min_price,
+                        (int)$request->max_price
+                    ]);
+                }
 
-        // Fetch type object
-        $typeObj = null;
-        if (!empty($info['type'])) {
-            $type = Type::find($info['type']);
-            if ($type) {
-                $typeObj = [
-                    "id" => $type->id,
-                    "name" => $type->name,
-                    "color" => $type->color,
-                ];
+                /* ---------------------------------------------------
+                PAGINATION
+                ----------------------------------------------------*/
+                $packages = $query->paginate(6);
+
+                /* ---------------------------------------------------
+                MAP RESPONSE (AS YOUR FRONTEND USES)
+                ----------------------------------------------------*/
+                $data = $packages->map(function ($package) {
+
+                    $info = $package->information ?? [];
+                    $tour = $package->tour ?? [];
+
+                    $days = is_array($tour) ? count($tour) : 0;
+                    $nights = $days > 1 ? $days - 1 : 0;
+
+                    $imageCount = !empty($info['images']) ? count($info['images']) : 0;
+                    $videoCount = !empty($info['video']) ? 1 : 0;
+
+                    // TYPE
+                    $typeObj = null;
+                    if (!empty($info['type'])) {
+                        $type = Type::find($info['type']);
+                        if ($type) {
+                            $typeObj = [
+                                "id"    => $type->id,
+                                "name"  => $type->name,
+                                "color" => $type->color,
+                            ];
+                        }
+                    }
+
+                    return [
+                        "id"          => $package->id,
+                        "information" => $info,
+                        "pricing"     => $package->pricing,
+                        "type"        => $typeObj,
+                        "days"        => $days,
+                        "nights"      => $nights,
+                        "image_count" => $imageCount,
+                        "video_count" => $videoCount,
+                    ];
+                });
+
+                return response()->json([
+                    "data"         => $data,
+                    "current_page" => $packages->currentPage(),
+                    "last_page"    => $packages->lastPage(),
+                    "total"        => $packages->total()
+                ]);
             }
-        }
-
-        return [
-            "id"          => $package->id,
-            "information" => $info,
-            "pricing"     => $package->pricing,
-            "type"        => $typeObj,
-            "days"        => $days,
-            "nights"      => $nights,
-            "image_count" => $imageCount,
-            "video_count" => $videoCount,
-        ];
-    });
-
-    return response()->json([
-        "data"         => $data,
-        "current_page" => $packages->currentPage(),
-        "last_page"    => $packages->lastPage(),
-        "total"        => $packages->total()
-    ]);
-}
 
 
 
-// get bu tour id 
-public function getByTour(Request $request, $tour_id)
-{
-    $query = Packages::where('tour_id', $tour_id);
 
-    /* ----------------------- FILTERS ----------------------- */
+        // get bu tour id 
+        public function getByTour(Request $request, $tour_id)
+            {
+                $query = Packages::where('tour_id', $tour_id);
 
-    // Destination (tour[].location)
-    if ($request->destination) {
-        $query->whereJsonContains('tour', [['location' => $request->destination]]);
-    }
+                /* ----------------------- FILTERS ----------------------- */
 
-    // Duration (count tour.length)
-    if ($request->duration) {
-        $query->whereRaw('JSON_LENGTH(tour) = ?', [$request->duration]);
-    }
+                /* ---------------------------------------------------
+                DESTINATION → FILTER BY place_id
+                ----------------------------------------------------*/
+                if ($request->destination) {
 
-    // Riders
-    if ($request->riders) {
-        $query->where('information->noofriders', $request->riders);
-    }
+                    $place = Places::where('name', $request->destination)->first();
 
-    // Price Range
-   if ($request->has('min_price') && $request->has('max_price')) {
-    $query->whereBetween('pricing', [
-        (int)$request->min_price,
-        (int)$request->max_price
-    ]);
-   }
+                    if ($place) {
+                        $query->where('place_id', $place->id);
+                    }
+                }
+
+                /* ---------------------------------------------------
+                TYPE → Front sends NAME but DB stores ID
+                ----------------------------------------------------*/
+                if ($request->type) {
+
+                    $type = Type::where('name', $request->type)->first();
+
+                    if ($type) {
+                        $query->where('information->type', $type->id);
+                    }
+                }
+
+                /* ---------------------------------------------------
+                DURATION → tour.length >= requested days
+                ----------------------------------------------------*/
+                if ($request->duration) {
+                    $minDays = (int) $request->duration;
+                    $query->whereRaw('JSON_LENGTH(tour) >= ?', [$minDays]);
+                }
+
+                /* ---------------------------------------------------
+                RIDERS → special logic same as index()
+                ----------------------------------------------------*/
+                if ($request->riders) {
+
+                    $minRiders = (int) $request->riders;
+
+                    if ($minRiders > 0) {
+                        $query->whereRaw("CAST(JSON_EXTRACT(information, '$.noofriders') AS UNSIGNED) >= ?", [$minRiders])
+                            ->orderByRaw("CAST(JSON_EXTRACT(information, '$.noofriders') AS UNSIGNED) ASC");
+                    }
+                }
+
+                    /* ---------------------------------------------------
+                    PRICE RANGE
+                    ----------------------------------------------------*/
+                    if ($request->has('min_price') && $request->has('max_price')) {
+                        $query->whereBetween('pricing', [
+                            (int) $request->min_price,
+                            (int) $request->max_price
+                        ]);
+                    }
 
 
-    /* ----------------------- PAGINATION ----------------------- */
-    $packages = $query->paginate(6);
+                /* ----------------------- PAGINATION ----------------------- */
+                $packages = $query->paginate(6);
 
-    /* ----------------------- MAP EACH PACKAGE ----------------------- */
-    $data = $packages->map(function ($package) {
+                /* ----------------------- MAP EACH PACKAGE ----------------------- */
+                $data = $packages->map(function ($package) {
 
-        $info = $package->information ?? [];
-        $tour = $package->tour ?? [];
+                    $info = $package->information ?? [];
+                    $tour = $package->tour ?? [];
 
-        $days = is_array($tour) ? count($tour) : 0;
-        $nights = $days > 1 ? $days - 1 : 0;
+                    $days = is_array($tour) ? count($tour) : 0;
+                    $nights = $days > 1 ? $days - 1 : 0;
 
-        $imageCount = isset($info['images']) ? count($info['images']) : 0;
-        $videoCount = isset($info['video']) && $info['video'] ? 1 : 0;
+                    $imageCount = isset($info['images']) ? count($info['images']) : 0;
+                    $videoCount = isset($info['video']) && $info['video'] ? 1 : 0;
 
-        // Fetch type object
-        $typeObj = null;
-        if (!empty($info['type'])) {
-            $type = Type::find($info['type']);
-            if ($type) {
-                $typeObj = [
-                    "id" => $type->id,
-                    "name" => $type->name,
-                    "color" => $type->color,
-                ];
+                    // Fetch type object
+                    $typeObj = null;
+                    if (!empty($info['type'])) {
+                        $type = Type::find($info['type']);
+                        if ($type) {
+                            $typeObj = [
+                                "id" => $type->id,
+                                "name" => $type->name,
+                                "color" => $type->color,
+                            ];
+                        }
+                    }
+
+                    return [
+                        "id"          => $package->id,
+                        "information" => $info,
+                        "pricing"     => $package->pricing,
+                        "type"        => $typeObj,
+                        "days"        => $days,
+                        "nights"      => $nights,
+                        "image_count" => $imageCount,
+                        "video_count" => $videoCount,
+                    ];
+                });
+
+                return response()->json([
+                    "data"         => $data,
+                    "current_page" => $packages->currentPage(),
+                    "last_page"    => $packages->lastPage(),
+                    "total"        => $packages->total()
+                ]);
             }
-        }
-
-        return [
-            "id"          => $package->id,
-            "information" => $info,
-            "pricing"     => $package->pricing,
-            "type"        => $typeObj,
-            "days"        => $days,
-            "nights"      => $nights,
-            "image_count" => $imageCount,
-            "video_count" => $videoCount,
-        ];
-    });
-
-    return response()->json([
-        "data"         => $data,
-        "current_page" => $packages->currentPage(),
-        "last_page"    => $packages->lastPage(),
-        "total"        => $packages->total()
-    ]);
-}
 
 // get flter for package for a particular tour
-public function getFilterByTour($tour_id)
-{
-    // 1. Fetch ALL packages for this tour_id
-    $packages = Packages::where('tour_id', $tour_id)->get();
+    public function getFilterByTour($tour_id)
+        {
+            // 1. Fetch ALL packages for this tour_id
+            $packages = Packages::where('tour_id', $tour_id)->get();
 
-    $destinations = [];
-    $durations = [];
-    $riders = [];
-    $prices = [];
+            $destinations = [];
+            $durations = [];
+            $riders = [];
+            $prices = [];
 
-    foreach ($packages as $pkg) {
+            foreach ($packages as $pkg) {
 
-        $info = $pkg->information ?? [];
-        $tour = $pkg->tour ?? [];
+                $info = $pkg->information ?? [];
+                $tour = $pkg->tour ?? [];
 
-        // DESTINATION (from tour[].location)
-        if (is_array($tour)) {
-            foreach ($tour as $point) {
-                if (!empty($point['location'])) {
-                    $destinations[] = $point['location'];
+                // DESTINATION (from tour[].location)
+                if (is_array($tour)) {
+                    foreach ($tour as $point) {
+                        if (!empty($point['location'])) {
+                            $destinations[] = $point['location'];
+                        }
+                    }
+                }
+
+                // TRIP DURATION (days count)
+                $dur = is_array($tour) ? count($tour) : 0;
+                if ($dur > 0) $durations[] = $dur;
+
+                // NO OF RIDERS
+                if (!empty($info['noofriders'])) {
+                    $riders[] = (int)$info['noofriders'];
+                }
+
+                // PRICES
+                if (!empty($pkg->pricing)) {
+                    $prices[] = (int)$pkg->pricing;
                 }
             }
+
+            // REMOVE DUPLICATES + SORT
+            $destinations = array_values(array_unique($destinations));
+            sort($destinations, SORT_NATURAL);
+
+            $durations = array_values(array_unique($durations));
+            sort($durations);
+
+            $riders = array_values(array_unique($riders));
+            sort($riders);
+
+            $minPrice = !empty($prices) ? min($prices) : 0;
+            $maxPrice = !empty($prices) ? max($prices) : 0;
+
+            return response()->json([
+                "destinations" => $destinations,
+                "durations"    => $durations,
+                "riders"       => $riders,
+                "price_range"  => [
+                    "min" => $minPrice,
+                    "max" => $maxPrice
+                ]
+            ]);
         }
 
-        // TRIP DURATION (days count)
-        $dur = is_array($tour) ? count($tour) : 0;
-        if ($dur > 0) $durations[] = $dur;
-
-        // NO OF RIDERS
-        if (!empty($info['noofriders'])) {
-            $riders[] = (int)$info['noofriders'];
-        }
-
-        // PRICES
-        if (!empty($pkg->pricing)) {
-            $prices[] = (int)$pkg->pricing;
-        }
-    }
-
-    // REMOVE DUPLICATES + SORT
-    $destinations = array_values(array_unique($destinations));
-    sort($destinations, SORT_NATURAL);
-
-    $durations = array_values(array_unique($durations));
-    sort($durations);
-
-    $riders = array_values(array_unique($riders));
-    sort($riders);
-
-    $minPrice = !empty($prices) ? min($prices) : 0;
-    $maxPrice = !empty($prices) ? max($prices) : 0;
-
-    return response()->json([
-        "destinations" => $destinations,
-        "durations"    => $durations,
-        "riders"       => $riders,
-        "price_range"  => [
-            "min" => $minPrice,
-            "max" => $maxPrice
-        ]
-    ]);
-}
 
 
+    // get flter for package for all 
+    public function getFilters()
+        {
+            $packages = Packages::all();
+            // FIXED RIDER OPTIONS
+            $riderOptions = [
+                ["value" => 1,  "label" => "Solo Rider"],
+                ["value" => 2,  "label" => "Duo"],
+                ["value" => 5,  "label" => "Group 5+"],
+                ["value" => 10, "label" => "Group 10+"],
+                ["value" => 15, "label" => "Group 15+"],
+                ["value" => 20, "label" => "Group 20+"],
+            ];
 
-// get flter for package for all 
-public function getFilters()
-{
-    $packages = Packages::all();
+            $destinations = [];
+            $durations = [];
+            $riders = [];
+            $prices = [];
+            // FIXED DURATIONS LIST
+            $durationOptions = [];
 
-    $destinations = [];
-    $durations = [];
-    $riders = [];
-    $prices = [];
-    $types = [];
+            for ($i = 1; $i <= 20; $i++) {
+                $durationOptions[] = [
+                    "value" => $i,
+                    "label" => $i . " Day" . ($i > 1 ? "s" : "")
+                ];
+            }
 
-    foreach ($packages as $pkg) {
+            // LAST OPTION → More Than 20 Days
+            $durationOptions[] = [
+                "value" => 21,
+                "label" => "More Than 20 Days"
+            ];
 
-        $info = $pkg->information ?? [];
-        $tour = $pkg->tour ?? [];
+            /** ============ NEW PART ============ */
+            // Fetch ALL Types
+            $allTypes = Type::select('id', 'name')->get();
 
-        // DESTINATIONS
-        if (is_array($tour)) {
-            foreach ($tour as $point) {
-                if (!empty($point['location'])) {
-                    $destinations[] = $point['location'];
+            // Fetch ALL Places for destination filter
+            $allPlaces = Places::select('id', 'name')->get();
+            /** ================================= */
+
+            foreach ($packages as $pkg) {
+
+                $info = $pkg->information ?? [];
+                $tour = $pkg->tour ?? [];
+
+                // DESTINATIONS (from tour field)
+                if (is_array($tour)) {
+                    foreach ($tour as $point) {
+                        if (!empty($point['location'])) {
+                            $destinations[] = $point['location'];
+                        }
+                    }
+                }
+
+                // TRIP DURATION (KEEPING EXACTLY AS YOU SAID)
+                $dur = is_array($tour) ? count($tour) : 0;
+                if ($dur > 0) {
+                    $durations[] = $dur;
+                }
+
+                // NO OF RIDERS
+                if (!empty($info['noofriders'])) {
+                    $riders[] = (int)$info['noofriders'];
+                }
+
+                // PRICES
+                if (!empty($pkg->pricing)) {
+                    $prices[] = (int)$pkg->pricing;
                 }
             }
-        }
 
-        // TRIP DURATION
-        $dur = is_array($tour) ? count($tour) : 0;
-        if ($dur > 0) {
-            $durations[] = $dur;
-        }
+            // UNIQUE + SORT
+            $destinations = array_values(array_unique($destinations));
+            sort($destinations, SORT_NATURAL);
 
-        // NO OF RIDERS
-        if (!empty($info['noofriders'])) {
-            $riders[] = (int)$info['noofriders'];
-        }
+            $durations = array_values(array_unique($durations));
+            sort($durations);
 
-        // PRICES
-        if (!empty($pkg->pricing)) {
-            $prices[] = (int)$pkg->pricing;
-        }
+            $riders = array_values(array_unique($riders));
+            sort($riders);
 
-        // TYPE → fetch type.name
-     if (!empty($pkg->information) && !empty($pkg->information['type'])) {
-        $typeId = (int)$pkg->information['type'];
-
-            $typeName = Type::where('id', $typeId)->value('name');
-
-            if ($typeName) {
-                $types[] = $typeName;
+            /** Riders — convert to labels */
+            $riderOptions = [];
+            foreach ($riders as $r) {
+                $riderOptions[] = [
+                    "value" => $r,
+                    "label" => $r . "+ Group"
+                ];
             }
+
+            /** Price range */
+            $minPrice = !empty($prices) ? min($prices) : 0;
+            $maxPrice = !empty($prices) ? max($prices) : 0;
+
+            return response()->json([
+                "destinations" => $allPlaces,   // <-- NOW RETURN ALL PLACES
+               "durations" => $durationOptions, // <-- SAME AS BEFORE
+                "riders"       => [
+                    ["value" => 1,  "label" => "Solo"],
+                    ["value" => 2,  "label" => "Duo"],
+                    ["value" => 5,  "label" => "Group 5+"],
+                    ["value" => 10, "label" => "Group 10+"],
+                    ["value" => 15, "label" => "Group 15+"],
+                    ["value" => 20, "label" => "Group 20+"],
+                ],
+                "price_range"  => [
+                    "min" => $minPrice,
+                    "max" => $maxPrice
+                ],
+                "types"        => $allTypes    // <-- NOW RETURN FULL TYPES LIST
+            ]);
         }
-    }
 
-    // UNIQUE + SORT
-    $destinations = array_values(array_unique($destinations));
-    sort($destinations, SORT_NATURAL);
-
-    $durations = array_values(array_unique($durations));
-    sort($durations);
-
-    $riders = array_values(array_unique($riders));
-    sort($riders);
-
-    $types = array_values(array_unique($types));
-    sort($types, SORT_NATURAL);
-
-    $minPrice = !empty($prices) ? min($prices) : 0;
-    $maxPrice = !empty($prices) ? max($prices) : 0;
-
-    return response()->json([
-        "destinations" => $destinations,
-        "durations"    => $durations,
-        "riders"       => $riders,
-        "price_range"  => [
-            "min" => $minPrice,
-            "max" => $maxPrice
-        ],
-        "types" => $types
-    ]);
-}
 
 
     // POST /packages
@@ -582,7 +685,8 @@ public function show($id)
         return response()->json(['message' => 'Package deleted successfully']);
     }
 
-    public function getPackages(){
+    public function getPackages()
+    {
         $packages = Packages::all();
             $data = $packages->map(function ($package) {
 

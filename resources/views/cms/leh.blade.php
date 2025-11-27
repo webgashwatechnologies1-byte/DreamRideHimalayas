@@ -14,8 +14,12 @@
     <div id="wrapper">
         <div id="pagee" class="clearfix">
 
-            @include('cms.layout.header')
+            <header class="main-header flex">
 
+                        <!-- Main Header -->
+                    @include('cms.layout.header')
+            </header>
+            
             <main id="main">
 
                 {{-- -------------------- BREADCRUMB --------------------- --}}

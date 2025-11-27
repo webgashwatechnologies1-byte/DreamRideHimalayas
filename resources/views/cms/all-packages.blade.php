@@ -20,6 +20,32 @@
 
 </head>
 <style>
+            /* Desktop sticky */
+          
+        @media(min-width: 992px) {
+            .sticky-filter {
+                position: sticky;
+                top: 120px;   /* header ke height ke hisab se change karna */
+                z-index: 10;
+            }
+        }
+
+
+        /* Sidebar box design */
+        .filter-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        /* On mobile full width */
+        @media (max-width: 991px) {
+            .filter-box {
+                margin-bottom: 20px;
+            }
+        }
+
     /* recent styling */
     /* form */
     summary::marker {
@@ -238,6 +264,13 @@
 
 <body class="body header-fixed ">
     <!-- /preload -->
+         @php
+          $filters = app()->call('\App\Http\Controllers\PackageController@getFilters')->getData(true);
+        @endphp
+
+        <script>
+            window.FILTER_DATA = @json($filters);
+        </script>
 
     <div id="wrapper">
         <div id="pagee" class="clearfix">
@@ -285,222 +318,224 @@
                 <section class="archieve-tour" style="padding-top: 70px; padding-bottom: 70px;">
                     <div class="tf-container">
                         <div class="row">
-                            <div class="col-lg-4 archieve-content">
-                                <form action="/" class="sider-bar-tour-package">
-                                    <div class="widget-filter mb-40">
-                                        <h6 class="title-tour">Search by Filter</h6>
-                                        <div class="group-select-wrap">
-                                            <fieldset class="group-select relative mb-22 filter-destination">
-                                                <i class="icon-Vector-8"></i>
-                                                <div class="search-bar-group relative">
-                                                    <label>Destination</label>
-                                                    <div class="nice-select" tabindex="0">
-                                                        <span class="current">Manali – Srinagar Route</span>
-                                                        <ul class="list">
-                                                            <li data-value="" class="option selected focus">Manali</li>
-                                                            <li data-value="leh" class="option">Leh</li>
-                                                            <li data-value="hanle" class="option">Hanle</li>
-                                                            <li data-value="umlingla" class="option">Umling La</li>
-                                                            <li data-value="srinagar" class="option">Srinagar</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-
-                                            {{-- <fieldset class="group-select relative mb-22">
-                                                <i class="icon-Vector-22"></i>
-                                                <div class="search-bar-group relative">
-                                                    <label>Bike Type</label>
-                                                    <div class="nice-select" tabindex="0">
-                                                        <span class="current">Choose Bike</span>
-                                                        <ul class="list">
-                                                            <li data-value="" class="option selected focus">Choose Bike
-                                                            </li>
-                                                            <li data-value="royal-enfield" class="option">Royal Enfield
-                                                                350/500</li>
-                                                            <li data-value="himalayan" class="option">Himalayan</li>
-                                                            <li data-value="adv390" class="option">KTM ADV 390</li>
-                                                            <li data-value="scrambler" class="option">Scrambler</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </fieldset> --}}
-
-                                            <fieldset class="group-select filter-duration relative mb-22">
-                                                <i class="icon-Group-111"></i>
-                                                <div class="search-bar-group relative">
-                                                    <label>Trip Duration</label>
-                                                    <div class="nice-select" tabindex="0">
-                                                        <span class="current">Select Duration</span>
-                                                        <ul class="list">
-                                                            <li data-value="" class="option selected focus">Select
-                                                                Duration</li>
-                                                            <li data-value="7days" class="option">7 Days</li>
-                                                            <li data-value="9days" class="option">9 Days</li>
-                                                            <li data-value="11days" class="option">11 Days</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-
-                                            <fieldset class="group-select filter-riders relative mb-22">
-                                                <i class="icon-user"></i>
-                                                <div class="search-bar-group relative">
-                                                    <label>Riders</label>
-                                                    <div class="nice-select" tabindex="0">
-                                                        <span class="current">Number of Riders</span>
-                                                        <ul class="list">
-                                                            <li data-value="" class="option selected focus">Select
-                                                                Riders</li>
-                                                            <li data-value="solo" class="option">Solo Rider</li>
-                                                            <li data-value="duo" class="option">2 Riders</li>
-                                                            <li data-value="group5" class="option">Group of 5+</li>
-                                                            <li data-value="group10" class="option">Group of 10+</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-
-                                            <fieldset class="group-select relative mb-40">
-                                                <h6 class="title-tour">Filter By Price</h6>
-                                                <div class="widget widget-price">
-                                                    <div id="slider-range2"></div>
-                                                    <div class="slider-labels">
-                                                        <div>
-                                                            <input type="hidden" name="min-value2" value="">
-                                                            <input type="hidden" name="max-value2" value="">
+                            <div class="col-lg-4 archieve-content sticky-filter pt-3">
+                                 <div id="filter-sidebar" class="filter-box ">
+                                    <form action="/" class="sider-bar-tour-package">
+                                        <div class="widget-filter mb-40">
+                                            <h6 class="title-tour">Search by Filter</h6>
+                                            <div class="group-select-wrap">
+                                                <fieldset class="group-select relative mb-22 filter-destination">
+                                                    <i class="icon-Vector-8"></i>
+                                                    <div class="search-bar-group relative">
+                                                        <label>Destination</label>
+                                                        <div class="nice-select" tabindex="0">
+                                                            <span class="current">Manali – Srinagar Route</span>
+                                                            <ul class="list">
+                                                                <li data-value="" class="option selected focus">Manali</li>
+                                                                <li data-value="leh" class="option">Leh</li>
+                                                                <li data-value="hanle" class="option">Hanle</li>
+                                                                <li data-value="umlingla" class="option">Umling La</li>
+                                                                <li data-value="srinagar" class="option">Srinagar</li>
+                                                            </ul>
                                                         </div>
-                                                        <div class="caption flex-three">
-                                                            <p class="price-range">Price Range:</p>
-                                                            <div class="number-range">
-                                                                <span id="slider-range-value01"></span>
-                                                                <span id="slider-range-value02"></span>
+                                                    </div>
+                                                </fieldset>
+
+                                                {{-- <fieldset class="group-select relative mb-22">
+                                                    <i class="icon-Vector-22"></i>
+                                                    <div class="search-bar-group relative">
+                                                        <label>Bike Type</label>
+                                                        <div class="nice-select" tabindex="0">
+                                                            <span class="current">Choose Bike</span>
+                                                            <ul class="list">
+                                                                <li data-value="" class="option selected focus">Choose Bike
+                                                                </li>
+                                                                <li data-value="royal-enfield" class="option">Royal Enfield
+                                                                    350/500</li>
+                                                                <li data-value="himalayan" class="option">Himalayan</li>
+                                                                <li data-value="adv390" class="option">KTM ADV 390</li>
+                                                                <li data-value="scrambler" class="option">Scrambler</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </fieldset> --}}
+
+                                                <fieldset class="group-select filter-duration relative mb-22">
+                                                    <i class="icon-Group-111"></i>
+                                                    <div class="search-bar-group relative">
+                                                        <label>Trip Duration</label>
+                                                        <div class="nice-select" tabindex="0">
+                                                            <span class="current">Select Duration</span>
+                                                            <ul class="list">
+                                                                <li data-value="" class="option selected focus">Select
+                                                                    Duration</li>
+                                                                <li data-value="7days" class="option">7 Days</li>
+                                                                <li data-value="9days" class="option">9 Days</li>
+                                                                <li data-value="11days" class="option">11 Days</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+
+                                                <fieldset class="group-select filter-riders relative mb-22">
+                                                    <i class="icon-user"></i>
+                                                    <div class="search-bar-group relative">
+                                                        <label>Riders</label>
+                                                        <div class="nice-select" tabindex="0">
+                                                            <span class="current">Number of Riders</span>
+                                                            <ul class="list">
+                                                                <li data-value="" class="option selected focus">Select
+                                                                    Riders</li>
+                                                                <li data-value="solo" class="option">Solo Rider</li>
+                                                                <li data-value="duo" class="option">2 Riders</li>
+                                                                <li data-value="group5" class="option">Group of 5+</li>
+                                                                <li data-value="group10" class="option">Group of 10+</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+
+                                                <fieldset class="group-select relative mb-40">
+                                                    <h6 class="title-tour">Filter By Price</h6>
+                                                    <div class="widget widget-price">
+                                                        <div id="slider-range2"></div>
+                                                        <div class="slider-labels">
+                                                            <div>
+                                                                <input type="hidden" name="min-value2" value="">
+                                                                <input type="hidden" name="max-value2" value="">
+                                                            </div>
+                                                            <div class="caption flex-three">
+                                                                <p class="price-range">Price Range:</p>
+                                                                <div class="number-range">
+                                                                    <span id="slider-range-value01"></span>
+                                                                    <span id="slider-range-value02"></span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </fieldset>
+                                                </fieldset>
 
-                                            <style>
-                                                .div-flex {
-                                                    display: flex;
-                                                }
-                                            </style>
-                                            {{-- for month and difficulty level --}}
-                                            {{-- <div class="div-flex">
-                                                <!-- select month -->
-                                                <div class="col-md-6" style="margin-right: 2px;">
-                                                    <fieldset class="group-select relative input-npd mb-22">
-                                                        <div class="search-bar-group relative">
-                                                            <label>Season</label>
-                                                            <div class="nice-select" tabindex="0">
-                                                                <span class="current">Select Month</span>
-                                                                <ul class="list">
-                                                                    <li data-value="" class="option selected focus">
-                                                                        Select Month</li>
-                                                                    <li data-value="may" class="option">May</li>
-                                                                    <li data-value="june" class="option">June</li>
-                                                                    <li data-value="july" class="option">July</li>
-                                                                    <li data-value="august" class="option">August</li>
-                                                                </ul>
+                                                <style>
+                                                    .div-flex {
+                                                        display: flex;
+                                                    }
+                                                </style>
+                                                {{-- for month and difficulty level --}}
+                                                {{-- <div class="div-flex">
+                                                    <!-- select month -->
+                                                    <div class="col-md-6" style="margin-right: 2px;">
+                                                        <fieldset class="group-select relative input-npd mb-22">
+                                                            <div class="search-bar-group relative">
+                                                                <label>Season</label>
+                                                                <div class="nice-select" tabindex="0">
+                                                                    <span class="current">Select Month</span>
+                                                                    <ul class="list">
+                                                                        <li data-value="" class="option selected focus">
+                                                                            Select Month</li>
+                                                                        <li data-value="may" class="option">May</li>
+                                                                        <li data-value="june" class="option">June</li>
+                                                                        <li data-value="july" class="option">July</li>
+                                                                        <li data-value="august" class="option">August</li>
+                                                                    </ul>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </fieldset>
-                                                </div>
+                                                        </fieldset>
+                                                    </div>
 
 
-                                                <!-- difficulty level -->
-                                                <div class="col-md-6" style="margin-left: 2px;">
-                                                    <fieldset class="group-select relative input-npd">
-                                                        <div class="search-bar-group relative">
-                                                            <label>Difficulty</label>
-                                                            <div class="nice-select" tabindex="0">
-                                                                <span class="current">Select Level</span>
-                                                                <ul class="list">
-                                                                    <li data-value="" class="option selected focus">
-                                                                        Select Level</li>
-                                                                    <li data-value="easy" class="option">Easy</li>
-                                                                    <li data-value="moderate" class="option">Moderate
-                                                                    </li>
-                                                                    <li data-value="challenging" class="option">
-                                                                        Challenging</li>
-                                                                </ul>
+                                                    <!-- difficulty level -->
+                                                    <div class="col-md-6" style="margin-left: 2px;">
+                                                        <fieldset class="group-select relative input-npd">
+                                                            <div class="search-bar-group relative">
+                                                                <label>Difficulty</label>
+                                                                <div class="nice-select" tabindex="0">
+                                                                    <span class="current">Select Level</span>
+                                                                    <ul class="list">
+                                                                        <li data-value="" class="option selected focus">
+                                                                            Select Level</li>
+                                                                        <li data-value="easy" class="option">Easy</li>
+                                                                        <li data-value="moderate" class="option">Moderate
+                                                                        </li>
+                                                                        <li data-value="challenging" class="option">
+                                                                            Challenging</li>
+                                                                    </ul>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </fieldset>
-                                                </div>
+                                                        </fieldset>
+                                                    </div>
 
-                                            </div> --}}
+                                                </div> --}}
 
-                                        </div>
-                                    </div>
-
-                                    {{-- <div class="widget-filter mb-40">
-                                        <summary>
-                                            <h6 class="title-tour" style="margin-top: 20px; margin-bottom: 10px;">Bike
-                                                Features</h6>
-                                        </summary>
-                                        <details>
-                                            <div class="group-check-box-wrap">
-                                                <div class="checkbox">
-                                                    <input id="check1" type="checkbox" name="check" value="check">
-                                                    <label for="check1">Dual Disc Brakes</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check2" type="checkbox" name="check" value="check">
-                                                    <label for="check2">ABS Equipped</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check3" type="checkbox" name="check" value="check">
-                                                    <label for="check3">Luggage Carrier</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check4" type="checkbox" name="check" value="check">
-                                                    <label for="check4">Backup Vehicle</label>
-                                                </div>
                                             </div>
-                                        </details>
-
-                                        <summary>
-                                            <h6 class="title-tour" style="margin-top: 20px; margin-bottom: 10px;">Trip
-                                                Inclusions</h6>
-                                        </summary>
-                                        <details>
-                                            <div class="group-check-box-wrap">
-                                                <div class="checkbox">
-                                                    <input id="check5" type="checkbox" name="check" value="check">
-                                                    <label for="check5">Accommodation</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check6" type="checkbox" name="check" value="check">
-                                                    <label for="check6">Meals Included</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check7" type="checkbox" name="check" value="check">
-                                                    <label for="check7">Support Team</label>
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input id="check8" type="checkbox" name="check" value="check">
-                                                    <label for="check8">Medical Assistance</label>
-                                                </div>
-                                            </div>
-                                        </details>
-                                    </div> --}}
-
-                                    <!-- <div class="widget-filter mb-40">
-                                        
-                                    </div> -->
-
-                                    {{-- <div class="widget-filter-content">
-                                        <div class="z-index3 relative">
-                                            <span class="text-main">Dream Ride Himalaya</span>
-                                            <h4 class="title text-white" id="tour-title">Leh Ladakh Bike Tour - 6N/7D Premium
-                                            </h4>
-                                            <p class="text-main">Experience the highest motorable road on Earth!</p>
-                                            <a href="#" class="booking-now">Book Now <i class="icon-Vector2"></i></a>
                                         </div>
-                                    </div> --}}
-                                </form>
+
+                                        {{-- <div class="widget-filter mb-40">
+                                            <summary>
+                                                <h6 class="title-tour" style="margin-top: 20px; margin-bottom: 10px;">Bike
+                                                    Features</h6>
+                                            </summary>
+                                            <details>
+                                                <div class="group-check-box-wrap">
+                                                    <div class="checkbox">
+                                                        <input id="check1" type="checkbox" name="check" value="check">
+                                                        <label for="check1">Dual Disc Brakes</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check2" type="checkbox" name="check" value="check">
+                                                        <label for="check2">ABS Equipped</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check3" type="checkbox" name="check" value="check">
+                                                        <label for="check3">Luggage Carrier</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check4" type="checkbox" name="check" value="check">
+                                                        <label for="check4">Backup Vehicle</label>
+                                                    </div>
+                                                </div>
+                                            </details>
+
+                                            <summary>
+                                                <h6 class="title-tour" style="margin-top: 20px; margin-bottom: 10px;">Trip
+                                                    Inclusions</h6>
+                                            </summary>
+                                            <details>
+                                                <div class="group-check-box-wrap">
+                                                    <div class="checkbox">
+                                                        <input id="check5" type="checkbox" name="check" value="check">
+                                                        <label for="check5">Accommodation</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check6" type="checkbox" name="check" value="check">
+                                                        <label for="check6">Meals Included</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check7" type="checkbox" name="check" value="check">
+                                                        <label for="check7">Support Team</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input id="check8" type="checkbox" name="check" value="check">
+                                                        <label for="check8">Medical Assistance</label>
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div> --}}
+
+                                        <!-- <div class="widget-filter mb-40">
+                                            
+                                        </div> -->
+
+                                        {{-- <div class="widget-filter-content">
+                                            <div class="z-index3 relative">
+                                                <span class="text-main">Dream Ride Himalaya</span>
+                                                <h4 class="title text-white" id="tour-title">Leh Ladakh Bike Tour - 6N/7D Premium
+                                                </h4>
+                                                <p class="text-main">Experience the highest motorable road on Earth!</p>
+                                                <a href="#" class="booking-now">Book Now <i class="icon-Vector2"></i></a>
+                                            </div>
+                                        </div> --}}
+                                    </form>
+                                 </div>
                             </div>
 
                             <div class="col-lg-8  ">
@@ -894,8 +929,6 @@ const urlParams = new URLSearchParams(window.location.search);
 // Create current filter map directly from URL
 currentFilters = new Map(urlParams);
 
-// First load dropdown filter options
-loadFilters(); 
 
 
 
@@ -936,19 +969,22 @@ function populateSelect(selector, items) {
     `;
 
     items.forEach(item => {
+
+        let value = item.value ?? item;   // if object use value else simple
+        let label = item.label ?? item;   // if object use label else simple
+
         select.innerHTML += `
-            <li class="option" data-value="${item}">${item}</li>
+            <li class="option" data-value="${value}">${label}</li>
         `;
     });
 
-    // RESET DEFAULT TEXT
     if (current) current.innerHTML = "Select";
 
-    // Refresh Nice Select
     setTimeout(() => {
         $('.nice-select').niceSelect('update');
     }, 50);
 }
+
 
 function initPriceSlider(min, max) {
     // guard: if slider element missing, skip
@@ -1005,23 +1041,17 @@ function applyUrlFilters() {
     });
 }
 
-function loadFilters() {
-    fetch(`/api/packages/main-filters`)
-        .then(res => res.json())
-        .then(data => {
+const data = window.FILTER_DATA;
 
-            populateSelect(".filter-destination", data.destinations);
-            populateSelect(".filter-duration", data.durations);
-            populateSelect(".filter-riders", data.riders);
+populateSelect(".filter-destination", data.destinations.map(d => d.name));
+populateSelect(".filter-duration", data.durations);
+populateSelect(".filter-riders", data.riders);
+initPriceSlider(data.price_range.min, data.price_range.max);
 
-            initPriceSlider(data.price_range.min, data.price_range.max);
-
-            setTimeout(() => {
-                initFilterEvents();
-                applyUrlFilters();  // <-- ADD THIS
-            }, 300);
-        });
-}
+setTimeout(() => {
+    initFilterEvents();
+    applyUrlFilters();
+}, 300);
 
 
 function initFilterEvents() {

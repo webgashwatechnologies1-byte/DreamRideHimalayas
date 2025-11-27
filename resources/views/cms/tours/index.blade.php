@@ -238,7 +238,13 @@
 
 <body class="body header-fixed ">
     <!-- /preload -->
+    @php
+          $filters = app()->call('\App\Http\Controllers\PackageController@getFilters')->getData(true);
+        @endphp
 
+        <script>
+            window.FILTER_DATA = @json($filters);
+        </script>
     <div id="wrapper">
         <div id="pagee" class="clearfix">
 
@@ -290,7 +296,7 @@
                                     <div class="widget-filter mb-40">
                                         <h6 class="title-tour">Search by Filter</h6>
                                         <div class="group-select-wrap">
-                                            <fieldset class="group-select relative mb-22 filter-destination">
+                                            {{-- <fieldset class="group-select relative mb-22 filter-destination">
                                                 <i class="icon-Vector-8"></i>
                                                 <div class="search-bar-group relative">
                                                     <label>Destination</label>
@@ -305,7 +311,7 @@
                                                         </ul>
                                                     </div>
                                                 </div>
-                                            </fieldset>
+                                            </fieldset> --}}
 
                                             {{-- <fieldset class="group-select relative mb-22">
                                                 <i class="icon-Vector-22"></i>
@@ -908,7 +914,6 @@ function renderPagination(current, last) {
 // INITIAL LOAD
 // -----------------------------------------------------
 loadPackages();
-loadFilters();
 
 
 function normalizeFilter(key, value) {
@@ -948,20 +953,21 @@ function populateSelect(selector, items) {
     `;
 
     items.forEach(item => {
+
+        let value = item.value ?? item;   // if object use value else simple
+        let label = item.label ?? item;   // if object use label else simple
+
         select.innerHTML += `
-            <li class="option" data-value="${item}">${item}</li>
+            <li class="option" data-value="${value}">${label}</li>
         `;
     });
 
-    // RESET DEFAULT TEXT
     if (current) current.innerHTML = "Select";
 
-    // Refresh Nice Select
     setTimeout(() => {
         $('.nice-select').niceSelect('update');
     }, 50);
 }
-
 function initPriceSlider(min, max) {
     // guard: if slider element missing, skip
     if (!$("#slider-range2").length) return;
@@ -1005,23 +1011,18 @@ function initPriceSlider(min, max) {
 }
 
 
-function loadFilters() {
-    fetch(`/api/packages/filters/${tourId}`)
-        .then(res => res.json())
-        .then(data => {
+    const data = window.FILTER_DATA;
 
-            populateSelect(".filter-destination", data.destinations);
-            populateSelect(".filter-duration", data.durations);
-            populateSelect(".filter-riders", data.riders);
-           
+    // populateSelect(".filter-destination", data.destinations.map(d => d.name));
+    populateSelect(".filter-duration", data.durations);
+    populateSelect(".filter-riders", data.riders);
+    initPriceSlider(data.price_range.min, data.price_range.max);
 
-            // price slider
-            initPriceSlider(data.price_range.min, data.price_range.max);
-             setTimeout(() => {
-                initFilterEvents();
-            }, 300);
-        });
-}
+    setTimeout(() => {
+        initFilterEvents();
+        applyUrlFilters();
+    }, 300);
+
 
 function initFilterEvents() {
 
