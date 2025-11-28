@@ -133,9 +133,7 @@
                                     <p>Riders</p>
                                 </li>
                                 
-                                <li>
-                                    <p>Services</p>
-                                </li>
+                                
                                 <li>
                                     <p>Action</p>
                                 </li>
@@ -250,8 +248,7 @@ function loadEnquiries(page = 1) {
             }
 
             response.data.forEach(row => {
-                let date = row.date ? new Date(row.date).toLocaleDateString() : "N/A";
-
+               
                 list.append(`
                     <li class="flex-three">
 
@@ -268,7 +265,7 @@ function loadEnquiries(page = 1) {
                         </div>
 
                         <div class="booking-list-table">
-                            <p class="date-gues">${date}</p>
+                            <p class="date-gues">${row.date}</p>
                         </div>
 
                         <div class="booking-list-table">
@@ -277,7 +274,7 @@ function loadEnquiries(page = 1) {
 
                         <div class="flex-five action-wrap">
                             <a href="/admin/forms/enquiries/${row.id}" class="action flex-five">
-                                <i class="icon-Vector-16"></i>
+                                <i class="icon-Vector-51"></i>
                             </a>
                             <div class="action flex-five" onclick="deleteEnquiry(${row.id})">
                                 <i class="icon-Vector-17"></i>

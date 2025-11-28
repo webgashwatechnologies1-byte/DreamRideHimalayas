@@ -165,7 +165,7 @@
             <a class="nav-link" data-tab="highlight">Highlights</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-tab="location">Location Share</a>
+            <a class="nav-link" data-tab="location">Dates</a>
         </li>
     </ul>
 
@@ -222,12 +222,8 @@ $(document).ready(function () {
 
     function renderBooking(b) {
 
-        let servicesHtml = b.services?.length
-            ? b.services.map(s => `<li>${s.name} - ₹${s.price}</li>`).join("")
-            : `<li>No extra services</li>`;
-
-        let date = b.date ? new Date(b.date).toLocaleDateString() : "N/A";
-
+      
+      
         $("#bookingDetails").html(`
             <h4 class="mb-20 yellow-title">Enquiry ID: #${b.id}</h4>
 
@@ -240,7 +236,7 @@ $(document).ready(function () {
 
                 <div class="col-md-6 mb-20">
                     <p class="detail-label">Date</p>
-                    <p class="detail-value">${date}</p>
+                    <p class="detail-value">${b.date}</p>
                 </div>
 
                 <div class="col-md-6 mb-20">
@@ -273,10 +269,7 @@ $(document).ready(function () {
                     <p class="detail-value">${b.payment_status}</p>
                 </div>
 
-                <div class="col-md-12 mb-20">
-                    <p class="detail-label">Services</p>
-                    <ul>${servicesHtml}</ul>
-                </div>
+               
 
             </div>
         `);
@@ -357,7 +350,12 @@ $(document).ready(function () {
             <p class="section-value">${i.noofriders}</p>
 
             <p class="section-label">Pricing</p>
-            <p class="section-value">₹${packageData.pricing}</p>
+             <p class="section-value">
+                ${packageData.pricing
+                    .map(item => `${item.name.toUpperCase()}: ₹${item.price} (${item.riders} riders)`)
+                    .join(" | ")
+                }
+            </p>
         `);
     }
 
@@ -390,23 +388,34 @@ $(document).ready(function () {
         $("#packageContent").html(`<div class="package-images-grid">${html}</div>`);
     }
 
-    function renderIncludedTab() {
-        let included = packageData.included_details.map(i => `
-            <span class="badge-yellow">${i.name}</span>
-        `).join("");
+        function renderIncludedTab() {
 
-        let amenities = packageData.amenities_details.map(a => `
-            <span class="badge-yellow">${a.name}</span>
-        `).join("");
+                // Inclusion
+                let inclusion = packageData.information.inclusion?.map(i => `
+                    <span class="badge-yellow">${i}</span>
+                `).join("") || "<p>No inclusions available</p>";
 
-        $("#packageContent").html(`
-            <h5 class="yellow-title mb-10">Included</h5>
-            ${included}
+                // Exclusion
+                let exclusion = packageData.information.exclusion?.map(e => `
+                    <span class="badge-yellow">${e}</span>
+                `).join("") || "<p>No exclusions available</p>";
 
-            <h5 class="yellow-title mt-20 mb-10">Amenities</h5>
-            ${amenities}
-        `);
-    }
+                // Complimentary Benefits
+                let complimentary = packageData.information.complimentary_benefits?.map(c => `
+                    <span class="badge-yellow">${c}</span>
+                `).join("") || "<p>No complimentary benefits</p>";
+
+                $("#packageContent").html(`
+                    <h5 class="yellow-title mb-10">Inclusion</h5>
+                    ${inclusion}
+
+                    <h5 class="yellow-title mt-20 mb-10">Exclusion</h5>
+                    ${exclusion}
+
+                    <h5 class="yellow-title mt-20 mb-10">Complimentary Benefits</h5>
+                    ${complimentary}
+                `);
+            }
 
     function renderHighlightTab() {
         let list = packageData.information.highlight.map(h => `
@@ -418,30 +427,48 @@ $(document).ready(function () {
         `);
     }
 
-    function renderLocationTab() {
-        const l = packageData.locationshare;
+        function renderLocationTab() {
+            const l = packageData.locationshare;
+            const dates = packageData.dates;
 
-        $("#packageContent").html(`
-            <h5 class="yellow-title mb-10">Location Share</h5>
-            <p>${l.description}</p>
+            // Make Date Table
+            let dateRows = dates.map(d => `
+                <tr>
+                    <td>${d.startingDate}</td>
+                    <td>${d.endingDate}</td>
+                </tr>
+            `).join("");
 
-            <p class="section-label mt-10">Highlights</p>
-            <ul>
-                ${l.highlight.map(h => `<li>${h}</li>`).join("")}
-            </ul>
-        `);
-    }
+            $("#packageContent").html(`
+               
+                ${l?.highlight ? `
+                    <p class="section-label mt-10">Highlights</p>
+                    <ul>
+                        ${l.highlight.map(h => `<li>${h}</li>`).join("")}
+                    </ul>
+                ` : ""}
+
+                <h5 class="yellow-title mt-20 mb-10">Available Dates</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Starting Date</th>
+                            <th>Ending Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dateRows}
+                    </tbody>
+                </table>
+            `);
+        }
 
     /* -----------------------
          BOOKING DETAILS
     ----------------------- */
     function renderBooking(b) {
-        let services = b.services?.length
-            ? b.services.map(s => `<li>${s.name} - ₹${s.price}</li>`).join("")
-            : `<li>No extras</li>`;
-
-        let date = b.date ? new Date(b.date).toLocaleDateString() : "N/A";
-
+     
+       
         $("#bookingDetails").html(`
             <h4 class="yellow-title mb-20">Enquiery ID: #${b.id}</h4>
 
@@ -454,7 +481,7 @@ $(document).ready(function () {
 
                 <div class="col-md-4 mb-20">
                     <p class="section-label">Date</p>
-                    <p class="section-value">${date}</p>
+                    <p class="section-value">${b.date}</p>
                 </div>
 
                 <div class="col-md-4 mb-20">
@@ -477,14 +504,7 @@ $(document).ready(function () {
                     <p class="section-value">${b.user_email}</p>
                 </div>
 
-              
-            
-
-               
-                <div class="col-md-12 mb-20">
-                    <p class="section-label">Services</p>
-                    <ul>${services}</ul>
-                </div>
+          
 
             </div>
         `);

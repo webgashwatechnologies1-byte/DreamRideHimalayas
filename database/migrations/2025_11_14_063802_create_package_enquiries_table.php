@@ -16,7 +16,7 @@ public function up()
 
         $table->unsignedBigInteger('package_id');
 
-        $table->date('date')->nullable();
+        $table->string('date')->nullable();
         $table->string('user_name');
         $table->string('user_phone');
         $table->string('user_email')->nullable();

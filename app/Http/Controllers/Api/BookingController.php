@@ -38,31 +38,36 @@ public function index(Request $request)
 }
 
     // CREATE
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'package_id' => 'required|exists:packages,id',
-            'date' => 'nullable|date',
+public function store(Request $request)
+{
+    $data = $request->validate([
+        'package_id' => 'required|exists:packages,id',
+        'date' => 'nullable|string',
 
-            'user_name' => 'required|string|max:255',
-            'user_phone' => 'required|string|max:20',
-            'user_email' => 'nullable|email',
+        'user_name' => 'required|string|max:255',
+        'user_phone' => 'required|string|max:20',
+        'user_email' => 'nullable|email',
 
-            'no_of_riders' => 'required|integer|min:1',
-            'services' => 'nullable|array',
+        'no_of_riders' => 'required|integer|min:1',
+        'services' => 'nullable|array',
 
-            'amount' => 'required|integer|min:0',
-            'payment_status' => 'required|string',
-            'message' => 'nullable|string'
-        ]);
+        'amount' => 'required|integer|min:0',
+        'payment_status' => 'required|string',
+        'message' => 'nullable|string',
+        'package_type' => 'nullable|string'
+    ]);
+   
 
-        $booking = PackageBooking::create($data);
+  
+    $booking = PackageBooking::create($data);
 
-        return response()->json([
-            'message' => 'Booking created successfully',
-            'data' => $booking
-        ]);
-    }
+    return response()->json([
+        'message' => 'Booking created successfully',
+        'data' => $booking
+    ]);
+}
+
+
 
     // SHOW
     public function show(PackageBooking $booking)
@@ -72,29 +77,29 @@ public function index(Request $request)
 
     // UPDATE
     public function update(Request $request, PackageBooking $booking)
-    {
-        $data = $request->validate([
-            'date' => 'nullable|date',
+{
+    $data = $request->validate([
+        'package_id'     => 'sometimes|exists:packages,id',
+        'date'           => 'nullable|string',   // 🔥 FIX
+        'user_name'      => 'sometimes|string|max:255',
+        'user_phone'     => 'sometimes|string|max:20',
+        'user_email'     => 'nullable|email',
+        'no_of_riders'   => 'sometimes|integer|min:1',
+        'services'       => 'nullable|array',
+        'amount'         => 'sometimes|integer|min:0',
+        'payment_status' => 'sometimes|string',
+        'message'        => 'nullable|string',
+        'package_type'   => 'nullable|string',
+    ]);
 
-            'user_name' => 'sometimes|string|max:255',
-            'user_phone' => 'sometimes|string|max:20',
-            'user_email' => 'nullable|email',
+    $booking->update($data);
 
-            'no_of_riders' => 'sometimes|integer|min:1',
-            'services' => 'nullable|array',
+    return response()->json([
+        'message' => 'Booking updated',
+        'data' => $booking
+    ]);
+}
 
-            'amount' => 'integer|min:0',
-            'payment_status' => 'string',
-            'message' => 'nullable|string'
-        ]);
-
-        $booking->update($data);
-
-        return response()->json([
-            'message' => 'Booking updated',
-            'data' => $booking
-        ]);
-    }
 
     // DELETE
     public function destroy(PackageBooking $booking)

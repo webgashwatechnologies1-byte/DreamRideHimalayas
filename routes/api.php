@@ -137,8 +137,11 @@
     Route::post('/footer/upload-image', [FooterSettingController::class, 'uploadImage']);
     Route::delete('/footer/gallery/{index}', [FooterSettingController::class, 'deleteGalleryImage']);
   
-    Route::apiResource('enquiries', EnquiryController::class);
-    Route::apiResource('bookings', BookingController::class);    
+    Route::middleware('api')->group(function () {
+        Route::apiResource('bookings', BookingController::class);
+        Route::apiResource('enquiries', EnquiryController::class);
+    });
+
     // User auth
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Dream Ride - Travel & Tour Booking HTML Template</title>
+    <title>Dream Ride - Travel & Tour Booking </title>
 
     <meta name="author" content="themesflat.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -300,8 +300,7 @@ function loadBookings(page = 1) {
                     ? row.services.map(s => `${s.name} (₹${s.price})`).join(", ")
                     : "No services";
 
-                let date = row.date ? new Date(row.date).toLocaleDateString() : "N/A";
-
+               
                 list.append(`
                     <li class="flex-three">
 
@@ -318,7 +317,7 @@ function loadBookings(page = 1) {
                         </div>
 
                         <div class="booking-list-table">
-                            <p class="date-gues">${date}</p>
+                            <p class="date-gues">${row.date}</p>
                         </div>
 
                         <div class="booking-list-table">
@@ -339,7 +338,7 @@ function loadBookings(page = 1) {
 
                         <div class="flex-five action-wrap">
                             <a href="/admin/forms/bookings/${row.id}" class="action flex-five">
-                                <i class="icon-Vector-16"></i>
+                                <i class="icon-Vector-51"></i>
                             </a>
                             <div class="action flex-five" onclick="deleteBooking(${row.id})">
                                 <i class="icon-Vector-17"></i>

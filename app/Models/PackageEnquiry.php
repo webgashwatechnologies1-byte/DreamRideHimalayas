@@ -19,7 +19,6 @@ class PackageEnquiry extends Model
 
     protected $casts = [
         'services' => 'array',
-        'date' => 'date'
     ];
 
     public function package()

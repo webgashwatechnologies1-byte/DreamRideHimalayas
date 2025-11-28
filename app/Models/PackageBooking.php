@@ -16,12 +16,13 @@ class PackageBooking extends Model
         'services',
         'amount',
         'payment_status',
-        'message'
+        'message',
+        'package_type'
     ];
 
     protected $casts = [
         'services' => 'array',
-        'date' => 'date'
+        'package_type' => 'string'
     ];
 
     public function package()

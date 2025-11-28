@@ -16,12 +16,13 @@ return new class extends Migration
             $table->json('information')->nullable(); // contains title, subtitle, images, etc.
             $table->json('tour')->nullable(); // array of days/locations
             $table->json('locationshare')->nullable(); // array of locations
+            $table->json('dates')->nullable(); // array of dates
             $table->json('feature')->nullable(); // array of feature IDs
             $table->json('reviews')->nullable(); // array of Reviews containing the email name , description and rating 
             $table->json('services')->nullable(); // array of service IDs
             $table->json('gallery')->nullable(); // array of images 
             $table->integer('place_id')->nullable(); // Place ID 
-            $table->integer('pricing')->default(0);
+            $table->json('pricing')->nullable();
             $table->foreignId('tour_id')->constrained('tours')->onDelete('cascade');
             $table->timestamps();
         });

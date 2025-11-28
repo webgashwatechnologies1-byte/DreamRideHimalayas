@@ -3,17 +3,27 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Booking - Dynamic Package</title>
+    <title>Booking - Dream Ride Himalayan</title>
     <meta name="author" content="themesflat.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/nice-select.css">
     <link rel="stylesheet" href="/app/css/map.min.css">
     <link rel="stylesheet" href="/app/css/jquery.fancybox.min.css">
     <link rel="shortcut icon" href="/assets/images/dreamridelogo.webp">
     <link rel="apple-touch-icon-precomposed" href="/assets/images/dreamridelogo.webp">
 
     <style>
+        .summary-box p {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        #bookingModal .form-control {
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
         /* small overrides to ensure dynamic badge looks good */
         .feature.dynamic-badge {
             padding: 6px 12px;
@@ -98,7 +108,7 @@
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link" id="pills-location-share-tab" data-bs-toggle="pill"
                                             data-bs-target="#pills-location-share" type="button" role="tab"
-                                            aria-controls="pills-location-share" aria-selected="false"><i class="icon-map-1"></i> Location share</button>
+                                            aria-controls="pills-location-share" aria-selected="false"><i class="icon-map-1"></i> Route/Dates</button>
                                     </li>
                                     <li class="nav-item" role="presentation" id="reviews-tab-item">
                                         <button class="nav-link" id="pills-reviews-tab" data-bs-toggle="pill"
@@ -195,26 +205,22 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="expect-wrap mb-70">
-                                                        <h4 class="title mb-40">Included / Excluded</h4>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <ul id="included-list" class="listing-clude"></ul>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <ul id="excluded-list" class="listing-clude"></ul>
-                                                            </div>
-                                                        </div>
+                                                  <div class="expect-wrap mb-70">
+
+                                                        <h4 class="title mb-20">Included</h4>
+                                                        <ul id="included-list" class="listing-clude mb-40"></ul>
+
+                                                        <h4 class="title mb-20">Excluded</h4>
+                                                        <ul id="excluded-list" class="listing-clude mb-40"></ul>
+
+                                                        <h4 class="title mb-20">Complimentary Benefits</h4>
+                                                        <ul id="complimentary-list" class="listing-clude mb-40"></ul>
+
                                                     </div>
 
-                                                    <div class="expect-wrap">
-                                                        <h4 class="title mb-40">Tour Amenities</h4>
-                                                        <div class="row">
-                                                            <div class="col-md-12">
-                                                                <ul id="amenities-list" class="listing-icon"></ul>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+
+
+                                                 
 
                                                 </div>
                                             </div>
@@ -229,25 +235,38 @@
 
         <!-- DATE -->
         <div class="input-wrap mb-30">
-            <input id="book-date" type="date" required>
+            <span class="label">Select Date</span>
+
+            <div class="nice-select" id="dateDropdown" tabindex="0">
+                <span class="current">Select Date</span>
+                <ul class="list" id="dateList">
+                    <li data-value="" class="option selected focus">Select Date</li>
+                </ul>
+            </div>
+
         </div>
 
+
+
         <!-- Arrival Time -->
-        <div class="flex-two mb-20">
+        <div class="flex-two mb-30">
             <span class="label">Arrival Time:</span>
             <p id="arrival-time" style="font-weight:600;"></p>
         </div>
 
         <!-- RIDERS INPUT -->
-        <div class="input-wrap mb-30">
-            <span class="label">Number of Riders:</span>
-            <input id="riders-count"
-                   type="number"
-                   min="1"
-                   value="1"
-                   class="form-control"
-                   required>
+      <div class="input-wrap mb-30">
+            <span class="label">Choose Package Type</span>
+
+            <div class="nice-select" id="priceDropdown" tabindex="0">
+                <span class="current">Select Package Type</span>
+                <ul class="list" id="priceList">
+                    <li data-value="" class="option selected focus">Select Package Type</li>
+                </ul>
+            </div>
+
         </div>
+
 
         <!-- DYNAMIC EXTRAS -->
         <div class="input-wrap-checkbox mb-30">
@@ -262,8 +281,8 @@
         </div>
 
         <!-- BUTTONS -->
-        <button type="button" id="btn-book" class="btn w-100 mb-2">Proceed to Book</button>
-        <button type="button" id="btn-enquiry" class="btn btn-warning w-100">Enquiry Now</button>
+        <button type="button" id="btn-book"    class="btn-main-small rounded w-100 mb-2">Proceed to Book</button>
+        <button type="button" id="btn-enquiry" class="btn-main-small rounded w-100">Enquiry Now</button>
 
     </form>
 </div>
@@ -374,31 +393,22 @@
                                     </div>
 
                                     <!-- LOCATION SHARE -->
-                                    <div class="tab-pane fade" id="pills-location-share" role="tabpanel" aria-labelledby="pills-location-share-tab">
-                                        <div class="row">
-                                            <div class="col-lg-8">
-                                                <div class="localtion-content-tour">
-                                                    <div class="map2 relative mb-32">
-                                                        <div id="map2" style="height:300px; background:#eee; display:flex; align-items:center; justify-content:center;">Map placeholder</div>
-                                                    </div>
-                                                    <div class="flex-three map-list mb-50">
-                                                        <i class="icon-18"></i>
-                                                        <p id="location-share-text">Location share text</p>
+                                     <div class="tab-pane fade" id="pills-location-share" role="tabpanel" aria-labelledby="pills-location-share-tab">
+                                                <div class="row">
+                                                    <div class="col-lg-8">
+                                                        <div id="route-map-container" style="display:none;">
+                                                            <h3 class="title-location mb-3">Route Map</h3>
+                                                            <div id="route-map" style="height:350px; background:#eee;"></div>
+                                                        </div>
                                                     </div>
 
-                                                    <h3 class="title-location">Description:</h3>
-                                                    <p id="location-desc" class="des mb-22"></p>
-
-                                                    <ul id="location-list" class="listing-des"></ul>
+                                                    <div class="col-lg-4">
+                                                        <h3 class="title-location mb-3">Available Dates</h3>
+                                                        <ul id="date-list" class="listing-des"></ul>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div class="col-lg-4">
-                                                <!-- sidebar copy (optional dynamic) -->
-                                                <div class="side-bar-right"></div>
-                                            </div>
-                                        </div>
-                                    </div>
 
                                     <!-- REVIEWS -->
                                     <div class="tab-pane fade" id="pills-reviews" role="tabpanel" aria-labelledby="pills-reviews-tab">
@@ -430,7 +440,7 @@
                     </div> <!-- end tf-container -->
                 </section>
 
-                <section class="mb--93">
+                <section class="mb--75">
                     <div class="tf-container">
                         <div class="callt-to-action flex-two z-index3 relative">
                             <div class="callt-to-action-content flex-three">
@@ -478,6 +488,152 @@
             </ul>
         </div>
     </div>
+    <div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px; overflow:hidden;">
+
+        <div class="modal-header" style="background:#f8f9fa; border-bottom:1px solid #ddd;">
+            <h5 class="modal-title" id="booking-modal-title" style="font-weight:700;"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body p-4">
+
+            <div class="row g-4">
+
+            <!-- LEFT SIDE: USER DETAILS -->
+            <div class="col-md-6">
+                <h5 class="mb-3" style="font-weight:600;">Your Details</h5>
+
+                <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="b_name" class="form-control" placeholder="Enter your name">
+                </div>
+
+                <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" id="b_email" class="form-control" placeholder="you@example.com">
+                </div>
+
+                <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="b_phone" class="form-control" placeholder="+91 98765 43210">
+                </div>
+
+                <div class="mb-3">
+                <label class="form-label">Additional Message (Optional)</label>
+                <textarea id="b_message" class="form-control" rows="3" placeholder="Write a message..."></textarea>
+                </div>
+            </div>
+
+
+            <!-- RIGHT SIDE: BOOKING SUMMARY -->
+            <div class="col-md-6">
+                <h5 class="mb-3" style="font-weight:600;">Booking Summary</h5>
+
+                <div class="summary-box p-3 mb-3" style="background:#f5f7fa; border-radius:8px;">
+                <p><strong>Date:</strong> <span id="b_date_show"></span></p>
+                <p><strong>Package Type:</strong> <span id="b_pack_type_show"></span></p>
+                <p><strong>Riders:</strong> <span id="b_riders_show"></span></p>
+
+                <p><strong>Selected Services:</strong></p>
+                <pre id="b_services_show" style="background: #fff; padding:10px; border-radius:6px; white-space:pre-wrap;"></pre>
+
+                <hr>
+                <p style="font-size:18px; font-weight:700;">
+                    Total Amount: <span class="text-success">₹<span id="b_amount"></span></span>
+                </p>
+                </div>
+
+                <button id="bookingSubmitBtn" class="btn btn-success w-100" style="font-size:18px; padding:10px;">
+                Confirm Booking
+                </button>
+            </div>
+
+            </div>
+
+        </div>
+
+        </div>
+    </div>
+    </div>
+    <div class="modal fade" id="enquiryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+
+            <div class="modal-header" style="background:#f8f9fa; border-bottom:1px solid #ddd;">
+                <h5 class="modal-title" id="enquiry-modal-title" style="font-weight:700;">Send Enquiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="row g-4">
+
+                <!-- LEFT SIDE -->
+                <div class="col-md-6">
+                    <h5 class="mb-3" style="font-weight:600;">Enquiry Details</h5>
+
+                    <!-- Date -->
+                    <!-- START DATE -->
+                    <div class="mb-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="e_start_date" class="form-control">
+                    </div>
+
+                    <!-- END DATE -->
+                    <div class="mb-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" id="e_end_date" class="form-control">
+                    </div>
+
+                    <input type="hidden" id="e_date">
+
+
+                    <!-- Riders -->
+                    <div class="mb-3">
+                    <label class="form-label">Riders (How many?)</label>
+                    <input type="number" id="e_riders" class="form-control" min="1" value="1">
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea id="e_message" class="form-control" rows="5" placeholder="Write your message..."></textarea>
+                    </div>
+
+                    <input type="hidden" id="e_package_id">
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div class="col-md-6">
+                    <h5 class="mb-3" style="font-weight:600;">Your Contact Info</h5>
+
+                    <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="e_name" class="form-control" placeholder="Enter your name">
+                    </div>
+
+                    <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="e_email" class="form-control" placeholder="you@example.com">
+                    </div>
+
+                    <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" id="e_phone" class="form-control" placeholder="+91 98765 43210">
+                    </div>
+
+                    <button id="enquirySubmitBtn" class="btn btn-primary w-100" style="font-size:18px; padding:10px;">
+                    Submit Enquiry
+                    </button>
+                </div>
+
+                </div>
+            </div>
+
+            </div>
+        </div>
+        </div>
 
     <!-- Javascript Assets -->
     <script src="/app/js/jquery.min.js"></script>
@@ -494,6 +650,8 @@
 
     <!-- ====== DYNAMIC SCRIPT ====== -->
     <script>
+     const APP_URL = "{{ config('app.url') }}";
+
           function findPackageIdFromUrl() {
                 // Try to find a numeric segment in URL (works for /packages/11/slug or /pages/tours/11/slug)
                 const seg = window.location.pathname.split('/').filter(Boolean);
@@ -533,7 +691,6 @@
             const elDescription = document.getElementById('package-description');
             const elHighlights = document.getElementById('package-highlights');
             const elIncluded = document.getElementById('included-list');
-            const elAmenities = document.getElementById('amenities-list');
             const elImageGallery = document.getElementById('image-gallery');
             const elTourPlan = document.getElementById('tour-plan-container');
             const elShotGallery = document.getElementById('shot-gallery');
@@ -541,8 +698,6 @@
             const elExpectEnd = document.getElementById('expect-end');
             const elExpectDepart = document.getElementById('expect-depart');
             const elExpectDiff = document.getElementById('expect-diff');
-            const elLocationShareText = document.getElementById('location-share-text');
-            const elLocationDesc = document.getElementById('location-desc');
             const elReviewsCount = document.getElementById('reviews-count');
             const elRatingStars = document.getElementById('rating-stars');
 
@@ -557,7 +712,7 @@
             // data holder
             let packageData = null;
             let includedDetails = [];
-            let amenitiesDetails = [];
+            
             let servicesDetails = [];
 
             // fetch package
@@ -618,9 +773,7 @@
                 // PACKAGE SINGLE PRICE
                 window.__package_price_single = Number(data.pricing);
 
-                // Riders input
-                const ridersInput = document.getElementById("riders-count");
-
+               
                 // dynamic services list
                 const servicesWrap = document.getElementById("services-container");
                 servicesWrap.innerHTML = "";
@@ -641,66 +794,211 @@
                     `;
                 });
             // Attach listeners for dynamic services checkboxes
-            document.querySelectorAll(".service-extra").forEach(chk => {
-                chk.addEventListener("change", calculateBookingTotal);
-            });
+                                                document.querySelectorAll(".service-extra").forEach(chk => {
+                                                    chk.addEventListener("change", calculateBookingTotal);
+                                                });
 
-            // Riders input listener
-            document.getElementById("riders-count")
-                    .addEventListener("input", calculateBookingTotal);
+                                        
+                                                // ========== ROUTE / MAP + DATE ==========
+                                            const dateList = document.getElementById("date-list");
+                                            dateList.innerHTML = "";
 
-                // price
-                elPriceMain.textContent = `₹${(data.pricing || 0).toLocaleString()}`;
-                // old price placeholder (if you have 'old_price' change)
-                elPriceOld.textContent = '';
+                                            // Extract actual date array from API
+                                            const dates = Array.isArray(data.dates) ? data.dates : [];
 
-                // description / highlights
-                elDescription.textContent = info.description || '';
-                elHighlights.innerHTML = '';
-                if (Array.isArray(info.highlight) && info.highlight.length) {
-                    info.highlight.forEach(h => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<p>${escapeHtml(h)}</p>`;
-                        elHighlights.appendChild(li);
+                                            if (dates.length > 0) {
+
+                                                // Header row
+                                                dateList.innerHTML += `
+                                                    <li class="flex-two" style="font-weight:700; border-bottom:1px solid #ddd; padding-bottom:6px;">
+                                                        <span>Starting</span>
+                                                        <span>Ending</span>
+                                                    </li>
+                                                `;
+
+                                                // Rows
+                                                dates.forEach(d => {
+                                                    dateList.innerHTML += `
+                                                        <li class="flex-two" style="padding:16px 0; border-bottom:1px solid #eee;">
+                                                            <span class="pl-4">${d.startingDate}</span>
+                                                            <span>${d.endingDate}</span>
+                                                        </li>
+                                                    `;
+                                                });
+
+                                            } else {
+                                                dateList.innerHTML = `<li><p>No dates available</p></li>`;
+                                            }
+
+
+
+                                                            // --- Map logic ---
+                                                            let hasMapPoints = false;
+                                                            let points = [];
+
+                                                            if (Array.isArray(data.tour)) {
+                                                                data.tour.forEach(day => {
+                                                                    if (day.lat && day.long) {
+                                                                        hasMapPoints = true;
+                                                                        points.push([parseFloat(day.lat), parseFloat(day.long)]);
+                                                                    }
+                                                                });
+                                                            }
+
+                                                            if (hasMapPoints) {
+                                                                document.getElementById("route-map-container").style.display = "block";
+
+                                                                const map = L.map("route-map").setView(points[0], 7);
+                                                                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+                                                                L.polyline(points, { color: "yellow", weight: 5 }).addTo(map);
+
+                                                                points.forEach((p, i) => {
+                                                                    L.marker(p).addTo(map).bindPopup("Day " + (i + 1));
+                                                                });
+
+                                                                map.fitBounds(points);
+                                                            }
+
+                                                    // price
+                                                // pricing = array → find min
+                                                        let lowest = 0;
+
+                                                        if (Array.isArray(data.pricing) && data.pricing.length) {
+                                                            lowest = Math.min(...data.pricing.map(p => Number(p.price)));
+                                                        }
+
+                                                        elPriceMain.textContent = `Starting From ₹${lowest.toLocaleString()}`;
+
+                                                    // old price placeholder (if you have 'old_price' change)
+                                                    elPriceOld.textContent = '';
+
+                                                    // description / highlights
+                                                    elDescription.textContent = info.description || '';
+                                                    elHighlights.innerHTML = '';
+                                                    if (Array.isArray(info.highlight) && info.highlight.length) {
+                                                        info.highlight.forEach(h => {
+                                                            const li = document.createElement('li');
+                                                            li.innerHTML = `<p>${escapeHtml(h)}</p>`;
+                                                            elHighlights.appendChild(li);
+                                                        });
+                                                    } else {
+                                                        elHighlights.innerHTML = '<li><p>No highlights available</p></li>';
+                                                    }
+
+                                                    // included/excluded lists (we got included_details and amenities_details in API if your controller was updated)
+                                                    // included_details and amenities_details may already be present on response
+                                                    includedDetails = data.included_details || [];
+
+                                                    servicesDetails = data.services_details || [];
+
+                                                            // ----- INCLUSION -----
+                                                        elIncluded.innerHTML = "";
+                                                            if (Array.isArray(info.inclusion) && info.inclusion.length) {
+                                                                info.inclusion.forEach(item => {
+                                                                    elIncluded.innerHTML += `<li class="flex-three mt-3"><i class="icon-Vector-7"></i><p>${escapeHtml(item)}</p></li>`;
+                                                                });
+                                                            } else {
+                                                                elIncluded.innerHTML = `<li><p>No inclusion added</p></li>`;
+                                                            }
+
+                                            // ----- EXCLUSION -----
+                                            const elExcluded = document.getElementById("excluded-list");
+                                            elExcluded.innerHTML = "";
+                                            if (Array.isArray(info.exclusion) && info.exclusion.length) {
+                                                info.exclusion.forEach(item => {
+                                                    elExcluded.innerHTML += `<li class="flex-three mt-3"><i class="icon-x"></i><p>${escapeHtml(item)}</p></li>`;
+                                                });
+                                            } else {
+                                                elExcluded.innerHTML = `<li><p>No exclusion added</p></li>`;
+                                            }
+
+                                            // ----- COMPLIMENTARY BENEFITS -----
+                                            const elCompl = document.getElementById("complimentary-list");
+                                            elCompl.innerHTML = "";
+                                            if (Array.isArray(info.complimentary_benefits) && info.complimentary_benefits.length) {
+                                                info.complimentary_benefits.forEach(item => {
+                                                    elCompl.innerHTML += `<li class="flex-three mt-3"><i class="icon-destination"></i><p>${escapeHtml(item)}</p></li>`;
+                                                });
+                                            } else {
+                                                elCompl.innerHTML = `<li><p>No complimentary benefits</p></li>`;
+                                            }
+                                        // date drop down for booking form 
+                    const dateDropdown = $('#dateDropdown');
+                    const dateList1 = $('#dateList');
+
+                    dateList1.empty().append(`
+                        <li data-value="" class="option selected focus">Select Date</li>
+                    `);
+
+                   data.dates.forEach(d => {
+                        const fullValue = `${d.startingDate} → ${d.endingDate}`;
+
+                        dateList1.append(`
+                            <li class="option"
+                                data-full="${fullValue}"
+                                data-start="${d.startingDate}"
+                                data-end="${d.endingDate}">
+                                ${fullValue}
+                            </li>
+                        `);
                     });
-                } else {
-                    elHighlights.innerHTML = '<li><p>No highlights available</p></li>';
-                }
 
-                // included/excluded lists (we got included_details and amenities_details in API if your controller was updated)
-                // included_details and amenities_details may already be present on response
-                includedDetails = data.included_details || [];
-                amenitiesDetails = data.amenities_details || [];
-                servicesDetails = data.services_details || [];
 
-                elIncluded.innerHTML = '';
-                if (includedDetails.length) {
-                    includedDetails.forEach(it => {
-                        const li = document.createElement('li');
-                        li.className = 'flex-three';
-                        li.innerHTML = `<i class="icon-Vector-7"></i><p>${escapeHtml(it.name)}</p>`;
-                        elIncluded.appendChild(li);
-                    });
-                } else {
-                    elIncluded.innerHTML = '<li class="flex-three"><p>Nothing included</p></li>';
-                }
+                    dateDropdown.on('click', '.option', function () {
+                            const fullValue = $(this).data('full');
+                            const start = $(this).data('start');
+                            const end = $(this).data('end');
 
-                // if you want to show excluded items, you can implement logic; currently keep right column empty or show placeholders
-                // document.getElementById('excluded-list').innerHTML = '<li class="flex-three"><p>Exclusions will be listed here at checkout</p></li>';
+                            dateDropdown.find('.current').text(fullValue);
+                            dateDropdown.find('.option').removeClass('selected focus');
+                            $(this).addClass('selected focus');
 
-                // amenities
-                elAmenities.innerHTML = '';
-                if (amenitiesDetails.length) {
-                    amenitiesDetails.forEach(it => {
-                        const li = document.createElement('li');
-                        li.className = 'flex-three';
-                        li.innerHTML = `<i class="icon-10"></i><p>${escapeHtml(it.name)}</p>`;
-                        elAmenities.appendChild(li);
-                    });
-                } else {
-                    elAmenities.innerHTML = '<li class="flex-three"><p>No amenities listed</p></li>';
-                }
+                            // store full + individual
+                            dateDropdown.attr('data-selected-date', fullValue);
+                            dateDropdown.attr('data-start-date', start);
+                            dateDropdown.attr('data-end-date', end);
+                        });
 
+// end here 
+// start price for booking form 
+                        const priceDropdown = $('#priceDropdown');
+                        const priceList = $('#priceList');
+
+                        priceList.empty().append(`
+                            <li data-value="" class="option selected focus">Select Package Type</li>
+                        `);
+
+                        data.pricing.forEach(p => {
+                            priceList.append(`
+                                <li class="option"
+                                    data-value="${p.name}"
+                                    data-price="${p.price}"
+                                    data-riders="${p.riders}">
+                                    ${p.name} — ₹${Number(p.price).toLocaleString()}
+                                </li>
+                            `);
+                        });
+
+                       priceDropdown.on('click', '.option', function () {
+
+                            const name = $(this).data('value');
+                            const price = $(this).data('price');
+                            const riders = $(this).data('riders'); // NEW ✔️
+
+                            priceDropdown.find('.current').text($(this).text());
+                            priceDropdown.find('.option').removeClass('selected focus');
+                            $(this).addClass('selected focus');
+
+                            priceDropdown.attr('data-selected-name', name);
+                            priceDropdown.attr('data-selected-price', price);
+                            priceDropdown.attr('data-selected-riders', riders); // NEW ✔️
+
+                            calculateBookingTotal();
+                        });
+
+
+// end here
                 // images gallery (main + thumbnails)
                 elImageGallery.innerHTML = '';
                 const images = info.images || [];
@@ -755,21 +1053,8 @@
                     elTourPlan.innerHTML = '<p>No tour plan available</p>';
                 }
 
-                // location share
-                elLocationShareText.textContent = (data.locationshare?.highlight && data.locationshare.highlight.length) ? data.locationshare.highlight.join(', ') : 'Location details not available';
-                elLocationDesc.textContent = data.locationshare?.description || 'No location description available';
-                // location-list placeholders (if needed)
-                const locList = document.getElementById('location-list');
-                locList.innerHTML = '';
-                if (Array.isArray(info.highlight) && info.highlight.length) {
-                    info.highlight.forEach(h => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<p>${escapeHtml(h)}</p>`;
-                        locList.appendChild(li);
-                    });
-                } else {
-                    locList.innerHTML = '<li><p>No highlights</p></li>';
-                }
+            
+               
 
                 // reviews
                 elReviewsCount.textContent = (data.reviews && data.reviews.length) ? `(${data.reviews.length} Reviews)` : '';
@@ -795,6 +1080,9 @@ if (data.reviews && data.reviews.length > 0) {
                 calculateBookingTotal();
             }
 
+
+   
+
             // Booking listeners & calculation
             function attachBookingListeners() {
                 if (!selSolo) return;
@@ -808,7 +1096,8 @@ if (data.reviews && data.reviews.length > 0) {
                  const toast = new ToastMagic();
 
                     e.preventDefault();
-                    const date = document.getElementById('book-date').value;
+                            let date = $("#dateDropdown").attr("data-selected-date") || "";
+
                     if (!date) {
                                     toast.error("Error!", "Please Select a Date!");
                         return;
@@ -832,23 +1121,28 @@ if (data.reviews && data.reviews.length > 0) {
                 });
             }
 
-            function calculateBookingTotal() {
-                const riders = parseInt(document.getElementById("riders-count").value || "1", 10);
+           function calculateBookingTotal() {
 
-                let base = riders * window.__package_price_single;
+                    // 1️⃣ GET SELECTED PACKAGE PRICE
+                    const selectedPrice = Number($("#priceDropdown").attr("data-selected-price") || 0);
 
-                // Extras
-                let extraTotal = 0;
-                document.querySelectorAll(".service-extra:checked").forEach(chk => {
-                    extraTotal += Number(chk.dataset.price);
-                });
+                    // 2️⃣ CALCULATE SELECTED SERVICES TOTAL
+                    let extraTotal = 0;
+                    document.querySelectorAll(".service-extra:checked").forEach(chk => {
+                        extraTotal += Number(chk.dataset.price);
+                    });
 
-                const total = base + extraTotal;
-                document.getElementById("booking-total").textContent =
-                    `₹${total.toLocaleString()}`;
+                    // 3️⃣ FINAL TOTAL
+                    const total = selectedPrice + extraTotal;
 
-                window.__last_total = total;
-            }
+                    // 4️⃣ SET TOTAL ON UI
+                    document.getElementById("booking-total").textContent =
+                        `₹${total.toLocaleString()}`;
+
+                    // 5️⃣ STORE FOR BOOKING API
+                    window.__last_total = total;
+                }
+
 
 
             // small helper to escape HTML
@@ -865,79 +1159,78 @@ if (data.reviews && data.reviews.length > 0) {
             // init
             loadPackage();
 
-        })();
+          })();
 
 
 
         // now for forms
       window.currentPackageId = findPackageIdFromUrl();;
 
-$("#btn-book").on("click", function () {
+   $("#btn-book").on("click", function () {
 
-    let date = $("#book-date").val();
-    let riders = parseInt($("#riders-count").val());
+    const toast = new ToastMagic();
+
+    // 1️⃣ CHECK DATE SELECTED
+    let date = $("#dateDropdown").attr("data-selected-date") || "";
+    if (!date) {
+        toast.error("Error!", "Please select a date first!");
+        return;
+    }
+
+    // 2️⃣ CHECK PACKAGE SELECTED
+    let packageType = $("#priceDropdown").attr("data-selected-price") || "";
+    if (!packageType) {
+        toast.error("Error!", "Please select a package type!");
+        return;
+    }
+
+    // 3️⃣ GET VALUES AFTER VALIDATION
+    let riders = $("#priceDropdown").attr("data-selected-riders") || 1;
     let amount = window.__last_total || 0;
+    let packType = $("#priceDropdown .current").text();
 
-    // collect selected services
     let services = [];
     let servicesText = "";
 
     document.querySelectorAll(".service-extra:checked").forEach(chk => {
         services.push({
             id: chk.dataset.id,
-            name:chk.dataset.name,
+            name: chk.dataset.name,
             price: chk.dataset.price
         });
-
         servicesText += `• ${chk.labels[0].innerText}\n`;
     });
 
-    // Hidden fields for backend
+    // Hidden fields
     $("#b_package_id").val(window.currentPackageId);
     $("#b_date").val(date);
     $("#b_riders").val(riders);
     $("#b_services").val(JSON.stringify(services));
 
-    // Visible fields for user
-    $("#b_date_show").val(date);
-    $("#b_riders_show").val(riders);
-    $("#b_services_show").val(servicesText || "No extras selected" );
-
-    $("#b_amount").val(amount);
+    // Visible
+    $("#b_date_show").text(date);
+    $("#b_riders_show").text(riders);
+    $("#b_pack_type_show").text(packType);
+    $("#b_services_show").text(servicesText || "No extras selected");
+    $("#b_amount").text(amount);
 
     $("#booking-modal-title").text("Book: " + window.currentPackageTitle);
     $("#bookingModal").modal("show");
 });
 
 
+
+
 $("#btn-enquiry").on("click", function () {
 
-    let date = $("#book-date").val();
-    let riders = parseInt($("#riders-count").val());
-
-    let services = [];
-    let servicesText = "";
-
-    document.querySelectorAll(".service-extra:checked").forEach(chk => {
-        services.push({
-            id: chk.dataset.id,
-            name:chk.dataset.name,
-            price: chk.dataset.price
-        });
-
-        servicesText += `• ${chk.labels[0].innerText}\n`;
-    });
-
-    // Hidden fields for backend
     $("#e_package_id").val(window.currentPackageId);
-    $("#e_date").val(date);
-    $("#e_riders").val(riders);
-    $("#e_services").val(JSON.stringify(services));
 
-    // Visible fields for user
-    $("#e_date_show").val(date);
-    $("#e_riders_show").val(riders);
-    $("#e_services_show").val(servicesText || "No extras selected" );
+    // reset
+    $("#e_start_date").val("");
+    $("#e_end_date").val("");
+    $("#e_date").val("");
+
+    $("#e_riders").val(1);
 
     $("#enquiry-modal-title").text("Enquiry for: " + window.currentPackageTitle);
     $("#enquiryModal").modal("show");
@@ -946,68 +1239,90 @@ $("#btn-enquiry").on("click", function () {
 
 
 
-// SUBMIT BOOKING
-$(document).on("click", "#bookingSubmitBtn", function (e) {
 
+
+// SUBMIT BOOKING
+$("#bookingSubmitBtn").on("click", function (e) {
     e.preventDefault();
-                 const toast = new ToastMagic();
+    const toast = new ToastMagic();
+
+    let cleanAmount = Number(
+        $("#b_amount").text().replace(/[₹, ]/g, "")
+    );
 
     const data = {
         package_id: $("#b_package_id").val(),
-        date: $("#b_date").val(),
+        date: $("#b_date").val(),   // make sure it's YYYY-MM-DD
         user_name: $("#b_name").val(),
         user_phone: $("#b_phone").val(),
         user_email: $("#b_email").val(),
         no_of_riders: $("#b_riders").val(),
         services: JSON.parse($("#b_services").val()),
-        amount: $("#b_amount").val(),
+        amount: cleanAmount, // ✅ FIXED INTEGER
         payment_status: "pending",
-        message: $("#b_message").val()
+        message: $("#b_message").val(),
+        package_type: $("#b_pack_type_show").text().trim()
     };
-        console.log(data);
 
-    fetch("/api/bookings", {
+    fetch(`${APP_URL}/api/bookings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
         body: JSON.stringify(data)
     })
     .then(res => res.json())
-    .then(() => {
-                    toast.success("Success!", "Booking Successful!");
-
-        $("#bookingModal")?.modal("hide");
+    .then(result => {
+        console.log(result);
+        toast.success("Success!", "Booking Successful!");
+        $("#bookingModal").modal("hide");
     });
 });
 
 // Submit Enquiery
 $(document).on("click", "#enquirySubmitBtn", function (e) {
     e.preventDefault();
-                 const toast = new ToastMagic();
+    const toast = new ToastMagic();
+
+    let start = $("#e_start_date").val();
+    let end   = $("#e_end_date").val();
+
+    if (!start || !end) {
+        toast.error("Error!", "Please select both start and end date.");
+        return;
+    }
+
+    // combine into one
+    const fullDate = `${start} → ${end}`;
+    $("#e_date").val(fullDate);
 
     const data = {
         package_id: $("#e_package_id").val(),
-        date: $("#e_date").val(),
+        date: fullDate,   // HERE ✔️✔️
         user_name: $("#e_name").val(),
         user_phone: $("#e_phone").val(),
         user_email: $("#e_email").val(),
         no_of_riders: $("#e_riders").val(),
-        services: JSON.parse($("#e_services").val()),
         message: $("#e_message").val()
     };
-        
 
-    fetch("/api/enquiries", {
+    fetch(`${APP_URL}/api/enquiries`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+        },
+
         body: JSON.stringify(data)
     })
     .then(res => res.json())
     .then(() => {
-                    toast.success("Success!", "Enquiry Submitted!");
-
+        toast.success("Success!", "Enquiry Submitted!");
         $("#enquiryModal").modal("hide");
     });
 });
+
+
 
 
 

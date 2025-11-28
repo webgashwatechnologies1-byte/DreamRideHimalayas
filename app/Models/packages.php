@@ -22,6 +22,7 @@ class Packages extends Model
         'gallery',
         'tour_id',
         'place_id',
+        'dates',
     ];
 
     protected $casts = [
@@ -32,6 +33,8 @@ class Packages extends Model
         'feature' => 'array',
         'services' => 'array',
         'gallery' => 'array',
+        'dates' => 'array',
+        'pricing' => 'array'
     ];
     public function tour()
     {

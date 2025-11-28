@@ -425,87 +425,88 @@ class PackageController extends Controller
 
 
     // POST /packages
-    public function store(Request $request)
-                {
-                    // Validate top-level structure
-                    $validated = $request->validate([
-                        'information' => 'required',
-                        'tour' => 'nullable',
-                        'availablevehicles' => 'nullable',
-                        'locationshare' => 'nullable',
-                        'feature' => 'nullable',
-                        'services' => 'nullable',
-                        'pricing' => 'required|integer',
-                        'tour_id' => 'required|exists:tours,id',
-                        'place_id' => 'required|exists:places,id',
-                    ]);
+   public function store(Request $request)
+{
+    // Validate only required fields
+    $validated = $request->validate([
+        'information' => 'required',
+        'tour'        => 'required',
+        'services'    => 'nullable',
+        'place_id'    => 'required|exists:places,id',
+        'tour_id'     => 'required|exists:tours,id',
+        'dates'       => 'required',
+        'pricing'     => 'required',
+    ]);
 
-                    // Decode JSON if it comes as string (since FormData sends strings)
-                    $information = json_decode($request->input('information'), true);
-                    $locationshare = json_decode($request->input('locationshare'), true);
-                    $tour = json_decode($request->input('tour', '[]'), true);
-                    $availablevehicles = json_decode($request->input('availablevehicles', '[]'), true);
-                    $feature = json_decode($request->input('feature', '[]'), true);
-                    $services = json_decode($request->input('services', '[]'), true);
+    // Convert JSON strings → arrays
+    $information   = json_decode($request->information, true);
+    $tour          = json_decode($request->tour, true);
+    $services      = json_decode($request->services, true);
+    $dates         = json_decode($request->dates, true);
+    $pricing       = json_decode($request->pricing, true);
 
+    // ==============================
+    // HANDLE MAIN IMAGES
+    // ==============================
+    $imagesMeta = json_decode($request->images_meta, true) ?? [];
+    $finalImages = [];
 
-                            // IMAGE 
-                        $imagePaths = [];
-                    if ($request->hasFile('images')) {
-                        foreach ($request->file('images') as $index => $image) {
-                            // Store on 'public' disk → saves to storage/app/public/packages/images
-                            $path = $image->store('packages/images', 'public');
+    if ($request->hasFile('images')) 
+    {
+        foreach ($request->file('images') as $index => $file) 
+        {
+            $path = $file->store('packages/images', 'public');
 
-                            $imagePaths[] = [
-                                'url' => 'storage/' . $path, // Browser-accessible URL
-                                'is_main' => $request->input("images_meta.$index.is_main") ?? false,
-                            ];
-                        }
-                    }
-
-                    // ==============================
-                    // HANDLE SHOT GALLERY UPLOADS
-                    // ==============================
-                    $shotGallery = [];
-                    if ($request->hasFile('shotgallery')) {
-                        foreach ($request->file('shotgallery') as $index => $image) {
-                            $path = $image->store('packages/shotgallery', 'public');
-
-                            $shotGallery[] = [
-                                'url' => 'storage/' . $path,
-                                'is_main' => false, // default; can be updated later
-                            ];
-                        }
-                    }
-
-
-
-                    // Merge media data into "information" JSON
-                    $information['images'] = $imagePaths;
-                    $information['shot_gallery'] = $shotGallery;
-
-
-                            // Save everything as JSON structure
-                            $package = Packages::create([
-                                'information' => $information,
-                                'tour' => $tour,
-                                'availablevehicles' => $availablevehicles,
-                                'locationshare' => $locationshare,
-                                'feature' => $feature,
-                                'services' => $services,
-                                'pricing' => $validated['pricing'],
-                                'tour_id' => $validated['tour_id'],
-                                'place_id' => $validated['place_id'],
-                                
-                            ]);
-
-                            return response()->json([
-                                'message' => 'Package created successfully',
-                                'package' => $package,
-                            ], 201);
+            $meta = collect($imagesMeta)->firstWhere('index', $index);
+            $finalImages[] = [
+                'url'     => 'storage/' . $path,
+                'is_main' => $meta['is_main'] ?? false,
+            ];
         }
+    }
 
-   // GET /packages/{id}
+    // ==============================
+    // HANDLE SHOT GALLERY
+    // ==============================
+    $shotGallery = [];
+    if ($request->hasFile('shotgallery')) 
+    {
+        foreach ($request->file('shotgallery') as $file) 
+        {
+            $path = $file->store('packages/shotgallery', 'public');
+
+            $shotGallery[] = [
+                'url'     => 'storage/' . $path,
+                'is_main' => false,
+            ];
+        }
+    }
+
+    // Merge inside `information`
+    $information['images'] = $finalImages;
+    $information['shot_gallery'] = $shotGallery;
+
+    // ==============================
+    // SAVE PACKAGE
+    // ==============================
+    $package = Packages::create([
+        'information' => $information,
+        'tour'        => $tour,
+        'services'    => $services,
+        'pricing'     => $pricing,
+        'dates'       => $dates,
+        'place_id'    => $request->place_id,
+        'tour_id'     => $request->tour_id,
+    ]);
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Package created successfully!',
+        'data'    => $package,
+    ], 201);
+}
+
+    // GET /packages/{id}
 public function show($id)
 {
     $package = Packages::findOrFail($id);
@@ -551,131 +552,134 @@ public function show($id)
         "included_details" => $included,
         "amenities_details" => $amenities,
         "services_details" => $services,
+        "dates" => $package -> dates,
     ]);
 }
 
 
     // PUT/PATCH /packages/{id}
-     public function update(Request $request, $id)
-            {
-                $package = Packages::findOrFail($id);
-                function cleanUrl($url) {
-                    return preg_replace('/^https?:\/\/[^\/]+\//', '', $url);
-                }
+    public function update(Request $request, $id)
+        {
+            $package = Packages::findOrFail($id);
 
-                // -------------------------
-                // VALIDATION
-                // -------------------------
-                $validated = $request->validate([
-                    'information'   => 'required',
-                    'tour'          => 'nullable',
-                    'locationshare' => 'nullable',
-                    'services'      => 'nullable',
-                    'pricing'       => 'required|integer',
-                    'tour_id'       => 'required|exists:tours,id',
-                    'place_id'      => 'required|exists:places,id',
-                ]);
+            // VALIDATION
+            $validated = $request->validate([
+                'information' => 'required',
+                'tour'        => 'nullable',
+                'services'    => 'nullable',
+                'pricing'     => 'required',
+                'dates'       => 'required',
+                'place_id'    => 'required|exists:places,id',
+                'tour_id'     => 'required|exists:tours,id',
+                'images_meta' => 'nullable',
+                'shotgallery_meta' => 'nullable',
+            ]);
 
-                // Decode JSON
-                $information    = json_decode($request->information, true);
-                $tour           = json_decode($request->tour ?? '[]', true);
-                $locationshare  = json_decode($request->locationshare ?? '[]', true);
-                $services       = json_decode($request->services ?? '[]', true);
+            // JSON decode
+            $information  = json_decode($request->information, true);
+            $tour         = json_decode($request->tour ?? '[]', true);
+            $services     = json_decode($request->services ?? '[]', true);
+            $pricing      = json_decode($request->pricing, true);
+            $dates        = json_decode($request->dates, true);
+            $imagesMeta   = json_decode($request->images_meta ?? '[]', true);
+            $galleryMeta  = json_decode($request->shotgallery_meta ?? '[]', true);
 
-                // ===============================================================
-                //   PACKAGE IMAGES MERGE: existing_images + new_images
-                // ===============================================================
+            // CLEAN URL
+            function cleanUrl($url) {
+                return preg_replace('/^https?:\/\/[^\/]+\//', '', $url);
+            }
 
-                $finalImages = [];
+            // =======================================================
+            // HANDLE MAIN IMAGES
+            // =======================================================
 
-                // 1️⃣ Existing images (keep them exactly as passed)
-               $existing = $request->input('existing_images', []);
-                foreach ($existing as $img) {
+            $finalImages = [];
+
+            // 1️⃣ EXISTING IMAGES
+            foreach ($imagesMeta as $meta) {
+                if ($meta['type'] === 'existing') {
                     $finalImages[] = [
-                        "url"     => cleanUrl($img["url"]),
-                        "is_main" => $img["is_main"] ?? false,
+                        'url'     => cleanUrl($meta['url']),
+                        'is_main' => $meta['is_main'] ?? false,
                     ];
                 }
+            }
 
+            // 2️⃣ NEW IMAGES
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $index => $file) {
 
-                // 2️⃣ Upload new images
-                if ($request->hasFile('new_images')) {
-                    foreach ($request->file('new_images') as $file) {
-                        $path = $file->store("packages/images", "public");
-                        $finalImages[] = [
-                            "url"     => "storage/" . $path,
-                            "is_main" => false, // default
-                        ];
-                    }
+                    $path = $file->store('packages/images', 'public');
+
+                    // find meta for this uploaded file
+                    $meta = collect($imagesMeta)->firstWhere('index', $index);
+
+                    $finalImages[] = [
+                        'url'     => 'storage/' . $path,
+                        'is_main' => $meta['is_main'] ?? false,
+                    ];
                 }
+            }
 
-                // 3️⃣ Apply main_index
-                $mainIndex = intval($request->main_index ?? 0);
-                foreach ($finalImages as $i => $img) {
-                    $finalImages[$i]['is_main'] = ($i === $mainIndex);
-                }
+            // =======================================================
+            // HANDLE SHOT GALLERY
+            // =======================================================
 
+            $finalGallery = [];
 
-                // ===============================================================
-                //   SHOT GALLERY MERGE: existing_gallery + new_gallery
-                // ===============================================================
-                $finalGallery = [];
-
-                // Existing
-               $existingGallery = $request->input("existing_gallery", []);
-                foreach ($existingGallery as $url) {
+            // 1️⃣ EXISTING
+            foreach ($galleryMeta as $meta) {
+                if ($meta['type'] === 'existing') {
                     $finalGallery[] = [
-                        "url"     => cleanUrl($url),
+                        'url'     => cleanUrl($meta['url']),
+                        'is_main' => false
+                    ];
+                }
+            }
+
+            // 2️⃣ NEW
+            if ($request->hasFile("shotgallery")) {
+                foreach ($request->file("shotgallery") as $index => $file) {
+                    $path = $file->store("packages/shotgallery", "public");
+
+                    $finalGallery[] = [
+                        "url"     => "storage/" . $path,
                         "is_main" => false
                     ];
                 }
-
-
-                // New
-                if ($request->hasFile("new_gallery")) {
-                    foreach ($request->file("new_gallery") as $file) {
-                        $path = $file->store("packages/shotgallery", "public");
-                        $finalGallery[] = [
-                            "url"     => "storage/" . $path,
-                            "is_main" => false
-                        ];
-                    }
-                }
-
-
-                // ===============================================================
-                //   VIDEO (Resumable upload path already sent as string)
-                // ===============================================================
-                $videoPath = $information['video'] ?? null;
-
-
-                // ===============================================================
-                //   FINAL MERGE INTO INFORMATION JSON
-                // ===============================================================
-                $information["images"]       = $finalImages;
-                $information["shot_gallery"] = $finalGallery;
-                $information["video"]        = $videoPath;
-
-
-                // ===============================================================
-                //   UPDATE PACKAGE
-                // ===============================================================
-                $package->update([
-                    'information'    => $information,
-                    'tour'           => $tour,
-                    'locationshare'  => $locationshare,
-                    'services'       => $services,
-                    'pricing'        => $validated['pricing'],
-                    'tour_id'        => $validated["tour_id"],
-                    'place_id'       => $validated["place_id"],
-                ]);
-
-                return response()->json([
-                    "message" => "Package updated successfully",
-                    "package" => $package
-                ]);
             }
 
+            // =======================================================
+            // UPDATE INFORMATION JSON
+            // =======================================================
+
+            $information['images'] = $finalImages;
+            $information['shot_gallery'] = $finalGallery;
+
+            // Keep old video if frontend didn't change it
+            if (!isset($information['video'])) {
+                $information['video'] = $package->information['video'] ?? null;
+            }
+
+            // =======================================================
+            // SAVE PACKAGE
+            // =======================================================
+            $package->update([
+                'information' => $information,
+                'tour'        => $tour,
+                'services'    => $services,
+                'pricing'     => $pricing,
+                'dates'       => $dates,
+                'place_id'    => $request->place_id,
+                'tour_id'     => $request->tour_id,
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Package updated successfully!',
+                'data'    => $package,
+            ], 200);
+        }
 
 
     // DELETE /packages/{id}

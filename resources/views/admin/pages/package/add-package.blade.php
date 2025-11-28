@@ -8,6 +8,7 @@
 
     <meta name="author" content="themesflat.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
     <link rel="stylesheet" href="/app/css/app.css">
     <link rel="stylesheet" href="/app/css/map.min.css">
@@ -33,83 +34,107 @@
     <link rel="apple-touch-icon-precomposed" href="/assets/images/dreamridelogo.webp">
     <style>
      /* Upload Box */
-.upload-box {
-    width: 220px;
-    height: 220px;
-    border: 2px dashed #b3b3b3;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    cursor: pointer;
-    background: #f8f9fa;
-    transition: 0.25s ease;
-    text-align: center;
-    margin-bottom: 15px;
-}
+     .location-suggestions {
+          max-height: 200px;
+          overflow-y: auto;
+          cursor: pointer;
+      }
+      .location-suggestions .suggestion-item:hover {
+          background: #f3f4f6;
+      }
+      .map-toggle-btn {
+          padding: 8px 20px;
+          border: 2px solid black;
+          background: white;
+          color: black;
+          border-radius: 8px;
+          font-weight: 600;
+          transition: 0.25s ease;
+      }
 
-.upload-box:hover {
-    background: #eef2f3;
-}
+      .map-toggle-btn.active {
+          background: #facc15; /* yellow */
+          color: white;
+          border-color: #facc15;
+      }
 
-.upload-box.dragover {
-    background: #e1f7e6;
-    border-color: #22c55e;
-}
+        .upload-box {
+            width: 220px;
+            height: 220px;
+            border: 2px dashed #b3b3b3;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: 0.25s ease;
+            text-align: center;
+            margin-bottom: 15px;
+        }
 
-.upload-label {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+        .upload-box:hover {
+            background: #eef2f3;
+        }
 
-.upload-label i {
-    font-size: 40px;
-    margin-bottom: 8px;
-    color: #666;
-}
+        .upload-box.dragover {
+            background: #e1f7e6;
+            border-color: #22c55e;
+        }
 
-.upload-label span {
-    font-size: 14px;
-    color: #444;
-}
+        .upload-label {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-/* Gallery Grid (same as edit page) */
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 15px;
-}
+        .upload-label i {
+            font-size: 40px;
+            margin-bottom: 8px;
+            color: #666;
+        }
 
-.gallery-item {
-    position: relative;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #f8f9fa;
-    border: 1px solid #e5e7eb;
-}
+        .upload-label span {
+            font-size: 14px;
+            color: #444;
+        }
 
-.gallery-item img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-}
+        /* Gallery Grid (same as edit page) */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
 
-.gallery-delete {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 6px 8px;
-    border-radius: 50%;
-    opacity: 0.8;
-    transition: 0.2s ease;
-}
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+        }
 
-.gallery-delete:hover {
-    opacity: 1;
-}
+        .gallery-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .gallery-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 8px;
+            border-radius: 50%;
+            opacity: 0.8;
+            transition: 0.2s ease;
+        }
+
+        .gallery-delete:hover {
+            opacity: 1;
+        }
 
         .day-block {
           background: #fff;
@@ -172,16 +197,16 @@
             padding: 8px 12px;
           }
           #highlightList input {
-  font-size: 15px;
-  padding: 6px 10px;
-}
-#highlightList li {
-  transition: all 0.2s ease;
-}
-#highlightList li:hover {
-  background: #f9fafb;
-  border-radius: 6px;
-}
+      font-size: 15px;
+      padding: 6px 10px;
+        }
+        #highlightList li {
+          transition: all 0.2s ease;
+        }
+        #highlightList li:hover {
+          background: #f9fafb;
+          border-radius: 6px;
+        }
 
 
       </style>
@@ -241,269 +266,209 @@
                         <div class="inner-header mb-40">
                           <h3 class="title">Add Tour</h3>
                         </div>
-                        <form action="/" id="form-add-tour" class="form-add-tour">
+                        <form action="/" id="form-add-tour" class="form-add-tour"> 
+                          <div class="container-fluid">
+  <div class="row">
+    <!-- LEFT FORM -->
+    <div class="col-lg-8 col-md-12" id="form-left">
+                           <div class="widget-dash-board pr-256 mb-75">
+                            
+
+                               <h4 class="title-add-tour mb-30">1. information</h4>
+                               <div class="grid-input-2 mb-45">
+                                 {{-- Places --}}
+                                                            <div class="input-wrap">
+                                              <label>Select your Place</label>
+                                              <div class="nice-select" id="placeDropdown" tabindex="0">
+                                                <span class="current">Select Place</span>
+                                                <ul class="list" id="placeList">
+                                                  <li data-value="" class="option selected focus">Select Place</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+                                            {{-- Tours --}}
+                                            <div class="input-wrap">
+                                              <label>Select your Tours</label>
+                                              <div class="nice-select" id="tourDropdown" tabindex="0">
+                                                <span class="current">Select Tour</span>
+                                                <ul class="list" id="tourList">
+                                                  <li data-value="" class="option selected focus">Select Tour</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+
+                                                                                <div class="input-wrap">
+                                                                                    <label>Enter your title</label>
+                                                                                    <input type="text" placeholder="Switzerland city tour">
+                                                                                </div>
+                                                                                <div class="input-wrap">
+                                                                                    <label>Enter your Subtitle</label>
+                                                                                    <input type="text" placeholder="Switzerland best city">
+                                                                                </div>
+                                                                                <div class="input-wrap">
+                                                                                  <label>No of Riders</label>
+                                                                                  <input type="text" placeholder="20,30... etc">
+                                                                              </div>
+                                                                              
+                                                                              
+                                                                                <div class="input-wrap">
+                                              <label>Select your Type</label>
+                                              <div class="nice-select" id="typeDropdown" tabindex="0">
+                                                <span class="current">Select Type</span>
+                                                <ul class="list" id="typeList">
+                                                  <li data-value="" class="option selected focus">Select Type</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+                                                                            </div>
+                                                                            <div class="input-wrap mb-45">
+                                                                                <label>Enter Keywords</label>
+                                                                                <input type="text" placeholder="Keyword">
+                                                                            </div>
+                                                                            <div class="input-wrap mb-45">
+                                                                                <label>Overview/Description</label>
+                                                                                <textarea name="description" rows="12" cols="50"
+                                                                                    placeholder="Write content"></textarea>
+                                                                            </div>
+                                                                            <div class="container my-3">
+                                                                            
+                                                                            
+                                                                                {{-- Services --}}
+                                                                              <h4 class="mb-3 mt-3">Select Extra Services To Include in Package</h4>
+
+                                            <div class="row" id="servicesManager">
+                                              <!-- Left: Selected -->
+                                              <div class="col-md-6">
+                                                <div class="card shadow-sm">
+                                                  <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="m-0 fw-semibold">Selected Services</h6>
+                                                    <small class="text-muted">Added items</small>
+                                                  </div>
+                                                  <div class="card-body" id="selectedServicesList">
+                                                    <p class="text-muted small m-0 p-2">No selected services.</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <!-- Right: All Services -->
+                                              <div class="col-md-6">
+                                                <div class="card shadow-sm">
+                                                  <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="m-0 fw-semibold">Available Services</h6>
+                                                    <small class="text-muted">All items</small>
+                                                  </div>
+                                                  <div class="card-body" id="allServicesList">
+                                                    <p class="text-muted small m-0 p-2">Loading services...</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+
+                                                                              </div>
+
+
+                                                                              <!-- WHAT TO EXPECT SECTION -->
+                                                                              <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                <h4 class="mb-3">What To Expect</h4>
+
+                                                                                <div class="expectation-section border rounded-3 p-4 bg-white">
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="startingpoint" class="fw-semibold text-dark">Starting Point</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="startingpoint" class="form-control" placeholder="e.g. Manali, Himachal Pradesh">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="endingpoint" class="fw-semibold text-dark">Ending Point</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="endingpoint" class="form-control" placeholder="e.g. Leh, Ladakh">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="departuretime" class="fw-semibold text-dark">Departure Time</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="departuretime" class="form-control" placeholder="e.g. Please arrive by 7:00 AM for departure at 7:30 AM">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="difficultylevel" class="fw-semibold text-dark">Difficulty Level</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="difficultylevel" class="form-control" placeholder="e.g. Moderate to Challenging">
+                                                                                    </div>
+                                                                                  </div>
+                                                                                </div>
+                                                                              </div>
+                                                                              <!-- HIGHLIGHTS SECTION -->
+                                                                              <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                  <h4 class="mb-0">Highlights</h4>
+                                                                                  <button type="button" id="btnAddHighlight" class="btn btn-sm btn-success">
+                                                                                    <i class="fa fa-plus"></i> Add
+                                                                                  </button>
+                                                                                </div>
+
+                                                                                <ul id="highlightList" class="list-unstyled border rounded-3 p-3 bg-white">
+                                                                                  <li class="text-muted small">No highlights added yet.</li>
+                                                                                </ul>
+                                                                              </div>
+
+                                                                                                                  <!-- Inclusion -->
+                                                                                <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                  <div class="d-flex justify-content-between">
+                                                                                    <h4>Inclusion</h4>
+                                                                                    <button type="button" id="btnAddInclusion" class="btn btn-sm btn-success">+ Add</button>
+                                                                                  </div>
+                                                                                  <ul id="inclusionList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                    <li class="text-muted small">No inclusion added.</li>
+                                                                                  </ul>
+                                                                                </div>
+
+                                                                                  <!-- Exclusion -->
+                                                                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                    <div class="d-flex justify-content-between">
+                                                                                      <h4>Exclusion</h4>
+                                                                                      <button type="button" id="btnAddExclusion" class="btn btn-sm btn-success">+ Add</button>
+                                                                                    </div>
+                                                                                    <ul id="exclusionList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                      <li class="text-muted small">No exclusion added.</li>
+                                                                                    </ul>
+                                                                                  </div>
+
+                                                                                  <!-- Complimentary -->
+                                                                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                    <div class="d-flex justify-content-between">
+                                                                                      <h4>Complimentary Benefits</h4>
+                                                                                      <button type="button" id="btnAddCompl" class="btn btn-sm btn-success">+ Add</button>
+                                                                                    </div>
+                                                                                    <ul id="complList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                      <li class="text-muted small">No complimentary benefit added.</li>
+                                                                                    </ul>
+                                                                                  </div>
+
+                                                                           
+
+                                                                        </div>
                             <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title-add-tour mb-30">1. information</h4>
-                                <div class="grid-input-2 mb-45">
-                                  {{-- Places --}}
-                 <div class="input-wrap">
-  <label>Select your Place</label>
-  <div class="nice-select" id="placeDropdown" tabindex="0">
-    <span class="current">Select Place</span>
-    <ul class="list" id="placeList">
-      <li data-value="" class="option selected focus">Select Place</li>
-    </ul>
-  </div>
-</div>
-{{-- Tours --}}
-<div class="input-wrap">
-  <label>Select your Tours</label>
-  <div class="nice-select" id="tourDropdown" tabindex="0">
-    <span class="current">Select Tour</span>
-    <ul class="list" id="tourList">
-      <li data-value="" class="option selected focus">Select Tour</li>
-    </ul>
-  </div>
-</div>
-
-                                    <div class="input-wrap">
-                                        <label>Enter your title</label>
-                                        <input type="text" placeholder="Switzerland city tour">
-                                    </div>
-                                    <div class="input-wrap">
-                                        <label>Enter your Subtitle</label>
-                                        <input type="text" placeholder="Switzerland best city">
-                                    </div>
-                                    <div class="input-wrap">
-                                      <label>No of Riders</label>
-                                      <input type="text" placeholder="20,30... etc">
-                                  </div>
-                                   
-                                  
-                                    <div class="input-wrap">
-  <label>Select your Type</label>
-  <div class="nice-select" id="typeDropdown" tabindex="0">
-    <span class="current">Select Type</span>
-    <ul class="list" id="typeList">
-      <li data-value="" class="option selected focus">Select Type</li>
-    </ul>
-  </div>
-</div>
-                                </div>
-                                <div class="input-wrap mb-45">
-                                    <label>Enter Keywords</label>
-                                    <input type="text" placeholder="Keyword">
-                                </div>
-                                <div class="input-wrap mb-45">
-                                    <label>Overview/Description</label>
-                                    <textarea name="description" rows="12" cols="50"
-                                        placeholder="Write content"></textarea>
-                                </div>
-                                <div class="container my-3">
-                                  <h4 class="mb-3">Select Amenities</h4>
-                                
-                                    {{-- AMENITIES --}}
-                                    <div class="dual-manager mb-4" id="amenities-manager">
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchSelectedAmenities" placeholder="Search selected amenities...">
-                                          <div class="ms-2"><small class="text-muted">Selected</small></div>
-                                        </div>
-                                  
-                                        <div class="selected-wrap dm-list" id="selectedAmenities"></div>
-                                      </div>
-                                  
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchAllAmenities" placeholder="Search all amenities...">
-                                          <button type="button" class="btn btn-success btn-small ms-2" id="btnAddNewAmenity"><i class="fa fa-plus"></i> Add</button>
-                                        </div>
-                                  
-                                        <div class="dm-list" id="allAmenitiesList">
-                                          <p class="text-muted small m-0 p-2">Loading amenities...</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  
-                                    {{-- INCLUDED (same UI) --}}
-                                  <h4 class="mb-3">Select Included</h4>
-
-                                    <div class="dual-manager" id="included-manager">
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchSelectedIncluded" placeholder="Search selected included...">
-                                          <div class="ms-2"><small class="text-muted">Selected</small></div>
-                                        </div>
-                                  
-                                        <div class="selected-wrap dm-list" id="selectedIncluded"></div>
-                                      </div>
-                                  
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchAllIncluded" placeholder="Search all included items...">
-                                          <button type="button" class="btn btn-success btn-small ms-2" id="btnAddNewIncluded"><i class="fa fa-plus"></i> Add</button>
-                                        </div>
-                                  
-                                        <div class="dm-list" id="allIncludedList">
-                                          <p class="text-muted small m-0 p-2">Loading included items...</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {{-- Services --}}
-                                   <h4 class="mb-3 mt-3">Select Extra Services To Include in Package</h4>
-
-<div class="row" id="servicesManager">
-  <!-- Left: Selected -->
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 fw-semibold">Selected Services</h6>
-        <small class="text-muted">Added items</small>
-      </div>
-      <div class="card-body" id="selectedServicesList">
-        <p class="text-muted small m-0 p-2">No selected services.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right: All Services -->
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 fw-semibold">Available Services</h6>
-        <small class="text-muted">All items</small>
-      </div>
-      <div class="card-body" id="allServicesList">
-        <p class="text-muted small m-0 p-2">Loading services...</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-                                  </div>
-
-
-                                  <!-- WHAT TO EXPECT SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <h4 class="mb-3">What To Expect</h4>
-
-                                    <div class="expectation-section border rounded-3 p-4 bg-white">
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="startingpoint" class="fw-semibold text-dark">Starting Point</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="startingpoint" class="form-control" placeholder="e.g. Manali, Himachal Pradesh">
-                                        </div>
-                                      </div>
-
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="endingpoint" class="fw-semibold text-dark">Ending Point</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="endingpoint" class="form-control" placeholder="e.g. Leh, Ladakh">
-                                        </div>
-                                      </div>
-
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="departuretime" class="fw-semibold text-dark">Departure Time</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="departuretime" class="form-control" placeholder="e.g. Please arrive by 7:00 AM for departure at 7:30 AM">
-                                        </div>
-                                      </div>
-
-                                      <div class="row align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="difficultylevel" class="fw-semibold text-dark">Difficulty Level</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="difficultylevel" class="form-control" placeholder="e.g. Moderate to Challenging">
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <!-- HIGHLIGHTS SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h4 class="mb-0">Highlights</h4>
-                                      <button type="button" id="btnAddHighlight" class="btn btn-sm btn-success">
-                                        <i class="fa fa-plus"></i> Add
-                                      </button>
-                                    </div>
-
-                                    <ul id="highlightList" class="list-unstyled border rounded-3 p-3 bg-white">
-                                      <li class="text-muted small">No highlights added yet.</li>
-                                    </ul>
-                                  </div>
-
-                                <div class="input-wrap">
-                                    <div class="d-flex justify-content-between">
-                                        <label>Upload Package Images</label>
-                                    <button type="button" id="removeAllBtn" class="btn-small btn-danger mt-2" style="display: none;">
-                                        <i class="fa-solid fa-trash"></i> Remove All
-                                      </button>
-                                    </div>
-                                    <div class="upload-image-add-car mb-30">
-                                      <div id="imagePreviewContainer" class="image-preview-container"></div>
-                                  
-                                      <div class="upload-image-box">
-                                        <label for="images" class="uploadLabel">
-                                          <i class="fas fa-image"></i>
-                                          <span>Add Photos</span>
-                                          <span><i class="fa-solid fa-upload" style="font-size:14px;margin-right:5px;"></i> Choose Images</span>
-
-                                          <input type="file" name="images[]" id="images" multiple accept="image/*">
-                                        </label>
-                                      </div>
-                                    </div>
-                                    
-                                    <p><span class="text-main">*</span>Supported: <span class="text-main">JPG, PNG</span> (Max: 2MB each)</p>
-
-                                  </div>
-                                  {{-- Videos --}}
-                                  <div class="input-wrap">
-                                    <div class="d-flex justify-content-between">
-                                        <label>Upload Videos</label>
-                                     <button type="button" id="removeAllBtnvideo" class="btn-small btn-danger mt-2" style="display: none;">
-                                        <i class="fa-solid fa-trash"></i> Remove All
-                                      </button>
-                                    </div>
-                                    <div class="upload-video-add-car mb-30">
-                                      <div id="videoPreviewContainer" class="video-preview-container"></div>
-                                  
-                                      <div class="upload-video-section">
-  <label>Upload Tour Video</label>
-  <input type="file" id="videoInput" accept="video/*" style="display:none;">
-
-  <div id="progressContainer" style="display:none;width:100%;background:#eee;height:8px;margin:10px 0;">
-    <div id="progressBar" style="background:#28a745;height:8px;width:0%;transition:width 0.3s;"></div>
-  </div>
-
-  <p id="uploadStatus" class="text-muted"></p>
-
-  <div class="btn-group">
-    <button type="button" class="btn btn-primary" id="replaceVideoBtn">Add/Replace Video</button>
-    <button type="button" class="btn btn-danger" id="deleteVideoBtn">Delete Video</button>
-    <button type="button" class="btn btn-warning" id="cancelUploadBtn">Cancel Upload</button>
-  </div>
-</div>
-
-                                    </div>
-                                    
-                                    <p><span class="text-main">*</span>Supported: <span class="text-main">mp4</span> (Max: 20MB each)</p>
-
-                                  </div>
-
-                            </div>
-                            <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title-add-tour mb-30">2. Tour Planning</h4>
-                              
+                                <div class="d-flex justify-content-between mb-30">
+                                <h4 class="title-add-tour ">2. Tour Planning</h4>
+                                  <button type="button" id="toggleMapBtn" class="map-toggle-btn">Enable Map</button>
+                              </div>
                                 <div id="tourDaysContainer"></div>
-                              
+                                  <h4 class="mt-4" id="routemapheading">Route Map</h4>
+                                  <div id="routeMap" style="height: 400px; width: 100%;"></div>
+
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                   <button type="button" id="addDayBtn" class="btn-small btn-success">
                                     <i class="fa-solid fa-plus"></i> Add New Day
@@ -513,52 +478,113 @@
                                   </button>
                                 </div>
                               </div>
-                              {{-- Location Share Section  --}}
+                              {{-- Date Adding Repeater --}}
+                              <!-- DATES SECTION -->
                             <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title">3. Location Share</h4>
-                                <div class="grid-input-2 mb-45">
-                                     <div class="input-wrap mb-45">
-                                    <label>Description</label>
-                                    <textarea name="descriptionLocation" rows="12" cols="50"
-                                        placeholder="Write content"></textarea>
-                                   </div>
-                                    
-                                </div>
-                                <!-- HIGHLIGHTS SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h4 class="mb-0">Highlights</h4>
-                                      <button type="button" id="btnAddHighlightLocation" class="btn btn-sm btn-success">
-                                        <i class="fa fa-plus"></i> Add
-                                      </button>
-                                    </div>
+                              <h4 class="title-add-tour mb-30">3. Dates</h4>
 
-                                    <ul id="highlightListLocation" class="list-unstyled border rounded-3 p-3 bg-white">
-                                      <li class="text-muted small">No highlights added yet.</li>
-                                    </ul>
-                                  </div>
-                                
-                               
+                              <div id="datesContainer"></div>
 
-
+                              <button type="button" id="addDateBtn" class="btn btn-sm btn-success mt-2">
+                                <i class="fa fa-plus"></i> Add Date
+                              </button>
                             </div>
 
+                            
+
                            
-                            <div class="widget-dash-board pr-256 mb-75">
+                            <div class="widget-dash-board pr-128 mb-75">
                                 <h4 class="title-add-tour mb-30">4. Pricing</h4>
 
                                 <div class="grid-input-2 mb-45">
                                     <div class="input-wrap">
-                                        <label>Tour Price</label>
-                                        <input type="number" placeholder="₹ 3215">
+                                      <div id="pricingContainer"></div>
+                                        <button type="button" id="addPriceBtn" class="btn btn-sm btn-success">
+                                          <i class="fa fa-plus"></i> Add Price Type
+                                        </button>
                                     </div>
                                    
                                 </div>
                                
 
                             </div>
-                            <div class="widget-dash-board pr-256">
-                                <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
+                         
+    </div>
+      <div style="height: fit-content" class="col-lg-4 bg-white p-4 col-md-12">
+      <div id="mediaSidebar" class="sticky-top">
+ 
+                                                                             
+        <h4>Tour Images</h4>
+        <!-- KEEP YOUR IMAGE UPLOAD CODE HERE -->
+                                                                        <div class="input-wrap">
+                                                                                <div class="d-flex justify-content-between">
+                                                                                    <label>Upload Package Images</label>
+                                                                                <button type="button" id="removeAllBtn" class="btn-small btn-danger mt-2" style="display: none;">
+                                                                                    <i class="fa-solid fa-trash"></i> Remove All
+                                                                                  </button>
+                                                                                </div>
+                                                                                <div class="upload-image-add-car mb-30">
+                                                                                  <div id="imagePreviewContainer" class="image-preview-container"></div>
+                                                                              
+                                                                                  <div class="upload-image-box">
+                                                                                    <label for="images" class="uploadLabel">
+                                                                                      <i class="fas fa-image"></i>
+                                                                                      <span>Add Photos</span>
+                                                                                      <span><i class="fa-solid fa-upload" style="font-size:14px;margin-right:5px;"></i> Choose Images</span>
+
+                                                                                      <input type="file" name="images[]" id="images" multiple accept="image/*">
+                                                                                    </label>
+                                                                                  </div>
+                                                                                </div>
+                                                                                
+                                                                                <p><span class="text-main">*</span>Supported: <span class="text-main">JPG, PNG</span> (Max: 2MB each)</p>
+
+                                                                              </div>
+
+        <hr>
+
+        <h4>Tour Video</h4>
+        <!-- KEEP VIDEO UPLOAD -->
+         {{-- Videos --}}
+                                                                                <div class="input-wrap">
+                                                                                  <div class="d-flex justify-content-between">
+                                                                                      <label>Upload Videos</label>
+                                                                                  <button type="button" id="removeAllBtnvideo" class="btn-small btn-danger mt-2" style="display: none;">
+                                                                                      <i class="fa-solid fa-trash"></i> Remove All
+                                                                                    </button>
+                                                                                  </div>
+                                                                                  <div class="upload-video-add-car mb-30">
+                                                                                    <div id="videoPreviewContainer" class="video-preview-container"></div>
+                                                                                
+                                                                                    <div class="upload-video-section">
+                                                                                      <label>Upload Tour Video</label>
+                                                                                      <input type="file" id="videoInput" accept="video/*" style="display:none;">
+
+                                                                                      <div id="progressContainer" style="display:none;width:100%;background:#eee;height:8px;margin:10px 0;">
+                                                                                        <div id="progressBar" style="background:#28a745;height:8px;width:0%;transition:width 0.3s;"></div>
+                                                                                      </div>
+
+                                                                                      <p id="uploadStatus" class="text-muted"></p>
+
+                                                                                      <div class="btn-group">
+                                                                                        <button type="button" class="btn btn-primary" id="replaceVideoBtn">Add/Replace Video</button>
+                                                                                        <button type="button" class="btn btn-danger" id="deleteVideoBtn">Delete Video</button>
+                                                                                        <button type="button" class="btn btn-warning" id="cancelUploadBtn">Cancel Upload</button>
+                                                                                      </div>
+                                                                                    </div>
+
+                                                                                                                        </div>
+                                                                                                                        
+                                                                                                                        <p><span class="text-main">*</span>Supported: <span class="text-main">mp4</span> (Max: 20MB each)</p>
+
+                                                                                </div>
+
+        <hr>
+
+        <h4>Shot Gallery</h4>
+        <!-- KEEP GALLERY CODE -->
+        <div class="input-wrap">
+              <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
 
                                {{-- Image will go here --}}
                                 <div id="uploadBox" class="upload-box">
@@ -572,13 +598,22 @@
                                 <div id="galleryContainer" class="gallery-grid">
                                     <p class="text-center text-muted">No Image Selected</p>
                                 </div>
-<hr/>
-                                <div class="input-wrap my-3">
-                                    <button type="button" class="button-add"> Save changes</button>
+        </div>
+
+      </div>
+         <div class="widget-dash-board ">
+                            
+                                        <hr/>
+                                <div class="input-wrap  my-3">
+                                    <button type="button" class="button-add w-100 "> Save changes</button>
                                 </div>
 
                             </div>
+    </div> <!-- END RIGHT -->
 
+  </div>
+  </div>
+                          
                         </form>
 
 
@@ -630,6 +665,7 @@
 
     <!-- Javascript -->
     <script src="/app/js/admin-auth-guard.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script src="/app/js/jquery.min.js"></script>
     <script src="/app/js/jquery.nice-select.min.js"></script>
@@ -654,336 +690,113 @@
     </script>
     <script src="/app/js/main.js"></script>
     
-    {{-- // Script for Amentite and included  --}}
-    <script>
-     
 
-        // Generic manager factory
-        function DualManager(opts) {
-          const api = opts.api; // /api/amenities or /api/included
-          const $allList = $(opts.allListSelector);
-          const $selectedList = $(opts.selectedListSelector);
-          const $addNewBtn = $(opts.addNewBtnSelector);
-          const $searchAll = $(opts.searchAllSelector);
-          const $searchSelected = $(opts.searchSelectedSelector);
-
-          // state
-          let allItems = [];         // full list from server [{id,name},...]
-          let selectedItems = [];    // items added to left panel (array of objects)
-          let filteredAll = [];      // for search
-          let filteredSelected = [];
-
-          // load from server
-          function loadAll() {
-            $allList.html('<p class="text-muted small m-0 p-2">Loading...</p>');
-            $.get(api)
-              .done((res) => {
-                // handle response with either res.data or res
-                allItems = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
-                filteredAll = allItems.slice();
-                renderAll();
-                renderSelected();
-              })
-              .fail(() => {
-                $allList.html('<p class="text-danger small m-0 p-2">Failed to load.</p>');
-              });
-          }
-
-          // render all panel
-          function renderAll() {
-            $allList.empty();
-            if (!filteredAll.length) {
-              $allList.html('<p class="text-muted small m-0 p-2">No items found.</p>');
-              return;
-            }
-            filteredAll.forEach(item => {
-              const isAdded = !!selectedItems.find(s => s.id == item.id);
-              const disabledClass = isAdded ? 'disabled' : '';
-              const $el = $(`
-                <div class="dm-item ${disabledClass}" data-id="${item.id}">
-                  <div class="label">${escapeHtml(item.name)}</div>
-                  <div class="actions">
-                    <button type="button" class="btn btn-sm btn-outline-success btn-add" title="Add"><i class="fa fa-plus"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary btn-edit" title="Edit"><i class="fa fa-pen"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete" title="Delete"><i class="fa fa-trash"></i></button>
-                  </div>
-                </div>
-              `);
-              // attach events
-              $el.find('.btn-add').on('click', function(e) {
-                if (isAdded) return;
-                moveToSelected(item);
-              });
-              $el.find('.btn-edit').on('click', function(e) {
-                e.stopPropagation();
-                openEditPopup(item);
-              });
-              $el.find('.btn-delete').on('click', function(e) {
-                e.stopPropagation();
-                openDeleteConfirm(item);
-              });
-
-              $allList.append($el);
-            });
-          }
-
-          // render selected left panel
-          function renderSelected() {
-            $selectedList.empty();
-            filteredSelected = selectedItems.slice();
-            if (!filteredSelected.length) {
-              $selectedList.html('<p class="text-muted small m-0 p-2">No selected items.</p>');
-              return;
-            }
-            filteredSelected.forEach((item, idx) => {
-              const $tag = $(`
-                <div class="selected-tag d-inline-flex" data-id="${item.id}">
-                  <span>${escapeHtml(item.name)}</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remove" title="Remove"><i class="fa fa-times"></i></button>
-                </div>
-              `);
-              $tag.find('.btn-remove').on('click', function(e) {
-                e.stopPropagation();
-                moveToAll(item);
-              });
-              $selectedList.append($tag);
-            });
-          }
-
-          // add -> left side
-          function moveToSelected(item) {
-            // animate: clone element and animate to selected box
-            const $source = $allList.find(`.dm-item[data-id="${item.id}"]`);
-            if ($source.length) {
-              const offsetSource = $source.offset();
-              const $temp = $source.clone().addClass('moving-temp').css({
-                width: $source.outerWidth(),
-                height: $source.outerHeight(),
-                left: offsetSource.left,
-                top: offsetSource.top
-              }).appendTo('body');
-              // push into state
-              selectedItems.push(item);
-              renderAll();
-              renderSelected();
-              const $target = $selectedList.offset();
-              // animate to target area
-              $temp.animate({ left: $target.left + 10, top: $target.top + 10, opacity: 0.1, width: 40, height: 20 }, 300, function() {
-                $temp.remove();
-              });
-            } else {
-              // fallback
-              selectedItems.push(item);
-              renderAll();
-              renderSelected();
-            }
-          }
-
-          // remove from left back to all
-          function moveToAll(item) {
-            const $targetEl = $allList.find(`.dm-item[data-id="${item.id}"]`);
-            // animate clone from selected
-            const $source = $selectedList.find(`.selected-tag[data-id="${item.id}"]`);
-            if ($source.length && $targetEl.length) {
-              const offSource = $source.offset();
-              const $temp = $source.clone().addClass('moving-temp').css({
-                width: $source.outerWidth(),
-                height: $source.outerHeight(),
-                left: offSource.left,
-                top: offSource.top
-              }).appendTo('body');
-
-              // remove from state
-              selectedItems = selectedItems.filter(s => s.id != item.id);
-              renderAll();
-              renderSelected();
-
-              const offTarget = $targetEl.offset();
-              $temp.animate({ left: offTarget.left, top: offTarget.top, opacity: 0.1, width: $targetEl.outerWidth(), height: $targetEl.outerHeight() }, 300, function() {
-                $temp.remove();
-              });
-            } else {
-              selectedItems = selectedItems.filter(s => s.id != item.id);
-              renderAll();
-              renderSelected();
-            }
-          }
-
-          // open add new popup
-          $addNewBtn.on('click', function() {
-            Swal.fire({
-              title: 'Add new',
-              input: 'text',
-              inputPlaceholder: 'Enter name',
-              showCancelButton: true,
-              confirmButtonText: 'Add',
-              inputValidator: v => !v && 'Name cannot be empty'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.post(api, { name: res.value })
-                  .done(resp => {
-                    // if API returns created object, push
-                    // reload all
-                    loadAll();
-                    Swal.fire('Added','New item added','success');
-                  })
-                  .fail(xhr => {
-                    Swal.fire('Error', xhr.responseJSON?.message || 'Failed to add', 'error');
-                  });
-              }
-            });
-          });
-
-          // edit
-          function openEditPopup(item) {
-            Swal.fire({
-              title: 'Edit item',
-              input: 'text',
-              inputValue: item.name,
-              showCancelButton: true,
-              confirmButtonText: 'Save',
-              inputValidator: v => !v && 'Name cannot be empty'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.ajax({
-                  url: `${api}/${item.id}`,
-                  type: 'PUT',
-                  data: { name: res.value }
-                }).done(() => {
-                  loadAll();
-                  // update name also in selectedItems if present
-                  selectedItems = selectedItems.map(si => si.id == item.id ? {...si, name: res.value} : si);
-                  renderSelected();
-                  Swal.fire('Saved','Updated successfully','success');
-                }).fail(xhr => {
-                  Swal.fire('Error', xhr.responseJSON?.message || 'Failed to update', 'error');
-                });
-              }
-            });
-          }
-
-          // delete
-          function openDeleteConfirm(item) {
-            Swal.fire({
-              title: `Delete "${item.name}"?`,
-              text: "This cannot be undone.",
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonText: 'Yes, delete'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.ajax({
-                  url: `${api}/${item.id}`,
-                  type: 'DELETE'
-                }).done(() => {
-                  // remove from state if selected
-                  selectedItems = selectedItems.filter(s => s.id != item.id);
-                  loadAll();
-                  renderSelected();
-                  Swal.fire('Deleted','Item removed','success');
-                }).fail(xhr => {
-                  Swal.fire('Error', xhr.responseJSON?.message || 'Failed to delete', 'error');
-                });
-              }
-            });
-          }
-
-          // search handlers
-          $searchAll.on('input', function() {
-            const q = $(this).val().toLowerCase().trim();
-            filteredAll = allItems.filter(it => it.name.toLowerCase().includes(q));
-            renderAll();
-          });
-          $searchSelected.on('input', function() {
-            const q = $(this).val().toLowerCase().trim();
-            // filter selectedItems view only, state unchanged
-            const prev = selectedItems.slice();
-            const filtered = prev.filter(it => it.name.toLowerCase().includes(q));
-            filteredSelected = filtered;
-            // temporarily render filteredSelected
-            $selectedList.empty();
-            if (!filtered.length) $selectedList.html('<p class="text-muted small m-0 p-2">No selected items.</p>');
-            else filtered.forEach((item, idx) => {
-              const $tag = $(`
-                <div class="selected-tag d-inline-flex" data-id="${item.id}">
-                  <span>${escapeHtml(item.name)}</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remove" data-index="${idx}"><i class="fa fa-times"></i></button>
-                </div>
-              `);
-              $tag.find('.btn-remove').on('click', function(e) {
-                e.stopPropagation();
-                moveToAll(item);
-              });
-              $selectedList.append($tag);
-            });
-          });
-
-          // expose getSelectedIds for form submission
-          function getSelectedIds() {
-            return selectedItems.map(s => s.id);
-          }
-
-          // escape html utility
-          function escapeHtml(str) {
-            return String(str).replace(/[&<>"'`=\/]/g, function(s){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[s]; });
-          }
-
-          // initial load
-          loadAll();
-
-          return {
-            getSelectedIds
-          };
-        }
-
-
-       
-      
-</script>
-<script>
-  // =======================
-  // 2️⃣ THEN instantiate it
-  // =======================
-  const amenitiesMgr = DualManager({
-    api: APP_URL + '/api/amenities',
-    allListSelector: '#allAmenitiesList',
-    selectedListSelector: '#selectedAmenities',
-    addNewBtnSelector: '#btnAddNewAmenity',
-    searchAllSelector: '#searchAllAmenities',
-    searchSelectedSelector: '#searchSelectedAmenities'
-  });
-  
-  const includedMgr = DualManager({
-    api: APP_URL + '/api/included',
-    allListSelector: '#allIncludedList',
-    selectedListSelector: '#selectedIncluded',
-    addNewBtnSelector: '#btnAddNewIncluded',
-    searchAllSelector: '#searchAllIncluded',
-    searchSelectedSelector: '#searchSelectedIncluded'
-  });
-
-
-  </script>
   <script>
 let allServices = [];
 let selectedServices = [];
+let ALL_LOCATIONS = [];
 
-function loadServices() {
-  const $all = $('#allServicesList');
-  const $selected = $('#selectedServicesList');
-  $all.html('<p class="text-muted small p-2">Loading services...</p>');
+  function loadServices() {
+    const $all = $('#allServicesList');
+    const $selected = $('#selectedServicesList');
+    $all.html('<p class="text-muted small p-2">Loading services...</p>');
 
-  $.get(`${APP_URL}/api/get-service`)
-    .done(res => {
-      allServices = res.data || [];
-      renderAll();
-      renderSelected();
-    })
-    .fail(() => {
-      $all.html('<p class="text-danger small p-2">Failed to load services.</p>');
-    });
-}
+    $.get(`${APP_URL}/api/get-service`)
+      .done(res => {
+        allServices = res.data || [];
+        renderAll();
+        renderSelected();
+      })
+      .fail(() => {
+        $all.html('<p class="text-danger small p-2">Failed to load services.</p>');
+      });
+  }
 
+    function drawRouteMap() {
+      const mapDiv = document.getElementById("routeMap");
+      if (!mapDiv) return;
+
+      mapDiv.innerHTML = "";
+      let points = [];
+
+      $("#tourDaysContainer .day-block").each(function () {
+          const lat = $(this).find(".location-lat").val();
+          const lng = $(this).find(".location-lng").val();
+
+          if (lat && lng) points.push([parseFloat(lat), parseFloat(lng)]);
+      });
+
+      if (points.length < 2) return;
+
+      const map = L.map("routeMap").setView(points[0], 6);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+      // draw route
+      L.polyline(points, { color: "yellow", weight: 4 }).addTo(map);
+
+      // markers
+      points.forEach((p, i) => {
+          L.marker(p).addTo(map).bindPopup("Day " + (i + 1));
+      });
+
+      map.fitBounds(points);
+  }
+
+  function attachLocationAutocomplete(block) {
+      const input = block.querySelector(".exact-location-input");
+      const suggestionBox = block.querySelector(".location-suggestions");
+      const latInput = block.querySelector(".location-lat");
+      const lngInput = block.querySelector(".location-lng");
+      const displayInput = block.querySelector(".location-display");
+
+     input.addEventListener("input", function () {
+    const val = this.value.trim();
+
+    if (!val) {
+        suggestionBox.style.display = "none";
+        return;
+    }
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&countrycodes=in&q=${encodeURIComponent(val)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.length) {
+                suggestionBox.innerHTML = `<div class="p-1 text-muted">No results</div>`;
+                suggestionBox.style.display = "block";
+                return;
+            }
+
+            suggestionBox.innerHTML = data
+                .map(loc => `
+                    <div class="p-1 suggestion-item"
+                        data-lat="${loc.lat}"
+                        data-lon="${loc.lon}"
+                        data-name="${loc.display_name}">
+                        ${loc.display_name}
+                    </div>
+                `)
+                .join("");
+
+            suggestionBox.style.display = "block";
+
+            suggestionBox.querySelectorAll(".suggestion-item").forEach(item => {
+                item.addEventListener("click", function () {
+                    input.value = this.dataset.name;
+                    latInput.value = this.dataset.lat;
+                    lngInput.value = this.dataset.lon;
+                    displayInput.value = this.dataset.name;
+                    suggestionBox.style.display = "none";
+
+                    drawRouteMap();
+                });
+            });
+        });
+});
+
+  }
+
+  
 // Render all services (right panel)
 function renderAll() {
   const $all = $('#allServicesList');
@@ -1073,6 +886,14 @@ function getSelectedServiceIds() {
 
 
   $(document).ready(function () {
+  // Load locations at start (India only)
+  fetch("https://nominatim.openstreetmap.org/search?country=India&format=json&addressdetails=1&limit=500&dedupe=1&featureType=city")
+      .then(res => res.json())
+      .then(data => {
+          ALL_LOCATIONS = data;
+          console.log("Loaded:", ALL_LOCATIONS.length);
+      });
+
 
     const placeDropdown = $('#placeDropdown');
     const placeList = $('#placeList');
@@ -1217,7 +1038,8 @@ function getSelectedServiceIds() {
           const block = document.createElement('div');
           block.classList.add('day-block', 'p-3', 'border', 'rounded', 'mb-4', 'shadow-sm');
           block.dataset.index = index;
-    
+         
+
           block.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="fw-semibold">Day ${index}</h5>
@@ -1225,21 +1047,7 @@ function getSelectedServiceIds() {
                 <i class="fa-solid fa-trash"></i> Remove
               </button>
             </div>
-     <!-- Emoji Picker -->
-              <div class="input-wrap position-relative">
-                <label>Select Emoji</label>
-                <div class="input-group">
-                  <input 
-                    type="text" 
-                    class="form-control emoji-input" 
-                    name="emoji[]" 
-                    placeholder="Click to choose emoji" 
-                    readonly 
-                    style="cursor:pointer;font-size:24px;text-align:center;">
-                </div>
-                <emoji-picker class="emoji-picker-panel" style="position:absolute;top:100%;left:0;z-index:999;display:none;width:300px;"></emoji-picker>
-              </div>
-            </div>
+            <!-- Emoji Picker -->
             <div class="grid-input-2 mb-3">
               <div class="input-wrap">
                 <label>Period (Day/Night)</label>
@@ -1247,10 +1055,29 @@ function getSelectedServiceIds() {
                   <option value="Day">Day</option>
                 </select>
               </div>
-              <div class="input-wrap">
-                <label>City Name</label>
-                <input type="text" placeholder="Enter City Name" class="form-control">
-              </div>
+              <!-- CITY NAME (Always Visible) -->
+                <div class="input-wrap">
+                  <label>City Name</label>
+                  <input type="text" placeholder="Enter City Name" class="form-control city-input">
+                </div>
+
+                <!-- EXACT LOCATION (Visible Only When Map = ON) -->
+                <div class="input-wrap exact-location-wrap" style="display:none; position:relative;">
+                    <label>Exact Location (Map Search)</label>
+
+                    <input type="text" class="form-control exact-location-input" placeholder="Search location...">
+
+                    <!-- Suggestions dropdown -->
+                    <div class="location-suggestions bg-white border rounded mt-1" 
+                        style="display:none; position:absolute; width:100%; z-index:9999;"></div>
+
+                    <!-- Hidden map coords -->
+                    <input type="hidden" class="location-lat">
+                    <input type="hidden" class="location-lng">
+                    <input type="hidden" class="location-display">
+                </div>
+
+
             </div>
     
             <div class="grid-input-2 mb-3">
@@ -1258,6 +1085,7 @@ function getSelectedServiceIds() {
                 <label>City Subtitle</label>
                 <input type="text" placeholder="From – To or Short Subtitle" class="form-control">
               </div>
+            </div>
     
              
     
@@ -1269,15 +1097,42 @@ function getSelectedServiceIds() {
             </div>
           `;
     
-          initializeEmojiPickers(block);
+        attachLocationAutocomplete(block);
+
           return block;
         }
+
+        let mapEnabled = false;
+
+       $("#toggleMapBtn").on("click", function () {
+
+          mapEnabled = !mapEnabled;
+
+          // Toggle button look
+          $(this).toggleClass("active");
+
+          // Show/Hide exact location fields for ALL existing days
+          $("#tourDaysContainer .exact-location-wrap").each(function () {
+              $(this).toggle(mapEnabled);
+          });
+
+          // Show/Hide map
+          $("#routeMap").toggle(mapEnabled);
+          $('#routemapheading').toggle(mapEnabled);
+          if (mapEnabled) drawRouteMap();
+      });
+
+
     
         // ============================
         // Add New Day
         // ============================
         addDayBtn.addEventListener('click', () => {
           const newBlock = createDayBlock(dayIndex);
+          if (mapEnabled) {
+            $(newBlock).find(".exact-location-wrap").show();
+        }
+
           tourDaysContainer.appendChild(newBlock);
           removeAllDaysBtn.style.display = 'inline-block';
           dayIndex++;
@@ -1302,6 +1157,8 @@ function getSelectedServiceIds() {
               }).then((result) => {
                 if (result.isConfirmed) {
                   btn.closest('.day-block').remove();
+                  renumberDays();
+                  drawRouteMap();
                   if (!tourDaysContainer.children.length) {
                     removeAllDaysBtn.style.display = 'none';
                     dayIndex = 1;
@@ -1312,7 +1169,21 @@ function getSelectedServiceIds() {
             };
           });
         }
-    
+        function renumberDays() {
+          let dayNum = 1;
+          $("#tourDaysContainer .day-block").each(function () {
+            $(this).find("h5").text("Day " + dayNum);
+            dayNum++;
+          });
+        }
+        function renumberDates() {
+          let i = 1;
+          $("#datesContainer .date-block").each(function(){
+            $(this).find("h6").text("Date " + i);
+            i++;
+          });
+        }
+
         // ============================
         // Remove All Days
         // ============================
@@ -1335,50 +1206,15 @@ function getSelectedServiceIds() {
           });
         });
     
-  // 🟢 Initialize emoji pickers inside each new day block
-  function initializeEmojiPickers(container) {
-    const emojiInputs = container.querySelectorAll('.emoji-input');
+ 
+  
 
-    emojiInputs.forEach((emojiInput) => {
-      const emojiPicker  = emojiInput.closest('.position-relative').querySelector('.emoji-picker-panel');
-      const emojiPreview = emojiInput.closest('.input-group').querySelector('.emoji-preview');
-
-      // open picker
-      emojiInput.addEventListener('focus', () => {
-        document.querySelectorAll('.emoji-picker-panel').forEach(p => p.style.display = 'none');
-        emojiPicker.style.display = 'block';
-      });
-      emojiInput.addEventListener('click', () => {
-        document.querySelectorAll('.emoji-picker-panel').forEach(p => p.style.display = 'none');
-        emojiPicker.style.display = 'block';
-      });
-
-      // when emoji is selected
-      emojiPicker.addEventListener('emoji-click', event => {
-        const emoji = event.detail.unicode;
-        emojiInput.value = emoji;
-        emojiPreview.innerHTML = twemoji.parse(emoji, {
-          folder: 'svg',
-          ext: '.svg'
-        }); // render as Twemoji image
-        emojiPicker.style.display = 'none';
-      });
-
-      // click outside → close picker
-      document.addEventListener('click', e => {
-        if (!emojiPicker.contains(e.target) && e.target !== emojiInput) {
-          emojiPicker.style.display = 'none';
-        }
-      });
-    });
-  }
-
-  // 🟢 Twemoji Render for existing emoji previews
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.emoji-preview').forEach(el => {
-      el.innerHTML = twemoji.parse('😀', { folder: 'svg', ext: '.svg' });
-    });
-  });
+  // // 🟢 Twemoji Render for existing emoji previews
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   document.querySelectorAll('.emoji-preview').forEach(el => {
+  //     el.innerHTML = twemoji.parse('😀', { folder: 'svg', ext: '.svg' });
+  //   });
+  // });
 
   
 
@@ -1432,55 +1268,7 @@ $(function () {
   });
 });
 
-// ===========================
-// HIGHLIGHT MANAGEMENT for Location Share
-// ===========================
-$(function () {
-  const $highlightList = $("#highlightListLocation");
-  const $btnAddHighlight = $("#btnAddHighlightLocation");
 
-  function renderHighlights() {
-    const items = $highlightList.find("li input").map(function() {
-      return $(this).val().trim();
-    }).get().filter(Boolean);
-
-    if (items.length === 0) {
-      $highlightList.html('<li class="text-muted small">No highlights added yet.</li>');
-    }
-  }
-
-  // Add new highlight
-  $btnAddHighlight.on("click", function () {
-    // remove "no highlights" message if present
-    if ($highlightList.find("li.text-muted").length) $highlightList.empty();
-
-    const $li = $(`
-      <li class="mb-2 d-flex align-items-center">
-        <input type="text" class="form-control me-2" placeholder="Enter highlight" style="flex:1;">
-        <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
-      </li>
-    `);
-
-    // remove logic with confirm
-    $li.find(".btn-remove").on("click", function () {
-      Swal.fire({
-        title: "Remove this highlight?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, remove",
-        cancelButtonText: "Cancel",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          $li.remove();
-          renderHighlights();
-          Swal.fire("Removed!", "Highlight removed.", "success");
-        }
-      });
-    });
-
-    $highlightList.append($li);
-  });
-});
 
 
     
@@ -1614,6 +1402,7 @@ $('#uploadImage').on('change', function () {
   renderGallery();
   this.value = "";
 });
+
 
 function renderGallery() {
   const container = $('#galleryContainer');
@@ -1782,6 +1571,99 @@ document.getElementById('replaceVideoBtn').addEventListener('click', async funct
   document.getElementById('videoInput').click();
 });
 
+// DATES HANDLER
+let dateIndex = 1;
+
+$("#addDateBtn").on("click", function(){
+  $("#datesContainer").append(`
+      <div class="border rounded p-3 mb-3 date-block">
+        <div class="d-flex justify-content-between">
+          <h6>Date ${dateIndex}</h6>
+          <button class="btn btn-sm btn-danger remove-date">Remove</button>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-md-6">
+            <label>Starting Date</label>
+            <input type="date" class="form-control startingDate">
+          </div>
+
+          <div class="col-md-6">
+            <label>Ending Date</label>
+            <input type="date" class="form-control endingDate">
+          </div>
+        </div>
+      </div>
+  `);
+  dateIndex++;
+});
+
+$(document).on("click", ".remove-date", function(){
+  $(this).closest(".date-block").remove();
+    renumberDates();
+});
+
+$("#addPriceBtn").on("click", function(){
+  $("#pricingContainer").append(`
+    <div class="border p-3 rounded mb-2 price-block">
+      <div class="row">
+        <div class="col-md-5">
+          <label>Name (Solo/Dual/OBOF/SIC)</label>
+          <input type="text" class="form-control price-name">
+        </div>
+       
+         <div class="col-md-5">
+          <label>No of Riders</label>
+          <input type="number" class="form-control rider-value">
+        </div>
+
+         <div class="col-md-5">
+          <label>Price</label>
+          <input type="number" class="form-control price-value">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-danger btn-sm remove-price">X</button>
+        </div>
+      </div>
+    </div>
+  `);
+});
+
+$(document).on("click", ".remove-price", function(){
+  $(this).closest(".price-block").remove();
+});
+
+
+
+
+// GENERIC ADD/REMOVE
+  function listHandler(btnId, containerId, emptyText){
+    $(btnId).on("click", function(){
+      const list = $(containerId);
+      if(list.find("li.text-muted").length) list.empty();
+
+      const li = $(`
+        <li class="mb-2 d-flex align-items-center">
+          <input type="text" class="form-control me-2" placeholder="Type and enter">
+          <button class="btn btn-sm btn-danger btn-remove">X</button>
+        </li>
+      `);
+
+      li.find(".btn-remove").on("click", ()=> {
+        li.remove();
+        if(!$(containerId).children().length){
+          $(containerId).html(`<li class='text-muted small'>${emptyText}</li>`);
+        }
+      });
+
+      list.append(li);
+    });
+  }
+
+listHandler("#btnAddInclusion", "#inclusionList", "No inclusion added.");
+listHandler("#btnAddExclusion", "#exclusionList", "No exclusion added.");
+listHandler("#btnAddCompl", "#complList", "No complimentary benefits added.");
+
 // ---------- Form submit (build FormData) ----------
 $('.button-add').on('click', function (e) {
   e.preventDefault();
@@ -1810,46 +1692,81 @@ Swal.fire({
       departuretime: $("#departuretime").val(),
       difficultylevel: $("#difficultylevel").val()
     },
-    included: typeof includedMgr !== 'undefined' ? includedMgr.getSelectedIds() : [],
-    amenities: typeof amenitiesMgr !== 'undefined' ? amenitiesMgr.getSelectedIds() : [],
   };
     const tour = [];
     $("#tourDaysContainer .day-block").each(function() {
-      tour.push({
-        period: $(this).find("select").val() || "",
-        location: $(this).find("input[placeholder='Enter City Name']").val() || "",
-        locationSubtitle: $(this).find("input[placeholder='From – To or Short Subtitle']").val() || "",
-        locationDescription: $(this).find("textarea").val() || "",
-        icon: $(this).find(".emoji-input").val() || ""
-      });
+        const city = $(this).find(".city-input").val() || "";
+
+  const exactLocation = $(this).find(".location-display").val() || "";
+  const lat = $(this).find(".location-lat").val() || "";
+  const lng = $(this).find(".location-lng").val() || "";
+  const enableMap = mapEnabled;
+
+
+    tour.push({
+    period: $(this).find("select").val() || "",
+    location: city,
+    locationSubtitle: $(this).find("input[placeholder='From – To or Short Subtitle']").val() || "",
+    locationDescription: $(this).find("textarea").val() || "",
+    icon: $(this).find(".emoji-input").val() || "",
+        ...(enableMap ? {
+            exact_location: exactLocation,
+            lat: lat,
+            long: lng
+        } : {})
     });
 
-  const locationshare = {
-    highlight: $("#highlightListLocation li input").map(function () { return $(this).val().trim(); }).get().filter(Boolean),
-    description: $("textarea[name='descriptionLocation']").val()?.trim(),
+    });
+    function getList(selector){
+      return $(selector+" input").map(function(){
+        return $(this).val().trim();
+      }).get().filter(Boolean);
+    }
 
-  }
+    information.inclusion = getList("#inclusionList");
+    information.exclusion = getList("#exclusionList");
+    information.complimentary_benefits = getList("#complList");
+
+
  const services = getSelectedServiceIds();
 
 
   // other top-level fields
   const place_id = $("#placeDropdown .option.selected").data("value") || null;
   const tour_id = $("#tourDropdown .option.selected").data("value") || null;
-  const pricing = parseInt($("input[placeholder='₹ 3215']").first().val()) || 0;
+ 
+  // DATES
+    const dates = [];
+    $("#datesContainer .date-block").each(function(){
+      dates.push({
+        startingDate: $(this).find(".startingDate").val(),
+        endingDate: $(this).find(".endingDate").val()
+      });
+    });
+  const pricing = [];
+  $("#pricingContainer .price-block").each(function(){
+    pricing.push({
+      name: $(this).find(".price-name").val(),
+      price: $(this).find(".price-value").val(),
+      riders: $(this).find(".rider-value").val()
+    });
+  });
 
   // Build FormData
   const fd = new FormData();
   information.video = uploadedVideoPath;
   // 1) information as JSON
   fd.append('information', JSON.stringify(information));
-  fd.append('locationshare', JSON.stringify(locationshare));
+ 
   fd.append('tour', JSON.stringify(tour));
   fd.append('services', JSON.stringify(services));
 
   // 2) add place/tour/pricing scalars (optional separate fields)
   fd.append('place_id', place_id ?? '');
   fd.append('tour_id', tour_id ?? '');
-  fd.append('pricing', pricing);
+  // dates
+  fd.append("dates", JSON.stringify(dates));
+  fd.append("pricing", JSON.stringify(pricing));
 
   // 3) images_meta: index and is_main, we will also append files as images[]
   const imagesMeta = filesArray.map((f, idx) => ({ index: idx, is_main: idx === mainImageIndex }));
@@ -1866,7 +1783,9 @@ Swal.fire({
     fd.append(`shotgallery[${idx}]`, file, file?.name || `shot_${idx}.jpg`);
   });
 
-  
+
+
+
 
   // Example: send with fetch
   fetch(`${APP_URL}/api/package`, {

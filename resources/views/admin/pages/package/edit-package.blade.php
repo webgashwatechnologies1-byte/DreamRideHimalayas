@@ -8,6 +8,7 @@
 
     <meta name="author" content="themesflat.com">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
     <link rel="stylesheet" href="/app/css/app.css">
     <link rel="stylesheet" href="/app/css/map.min.css">
@@ -32,48 +33,84 @@
     <link rel="shortcut icon" href="/assets/images/dreamridelogo.webp">
     <link rel="apple-touch-icon-precomposed" href="/assets/images/dreamridelogo.webp">
     <style>
-          .upload-box {
-            width: 100%;
-            padding: 30px;
-            border: 2px dashed #ced4da;
+     /* Upload Box */
+     .location-suggestions {
+          max-height: 200px;
+          overflow-y: auto;
+          cursor: pointer;
+      }
+      .location-suggestions .suggestion-item:hover {
+          background: #f3f4f6;
+      }
+      .map-toggle-btn {
+          padding: 8px 20px;
+          border: 2px solid black;
+          background: white;
+          color: black;
+          border-radius: 8px;
+          font-weight: 600;
+          transition: 0.25s ease;
+      }
+
+      .map-toggle-btn.active {
+          background: #facc15; /* yellow */
+          color: white;
+          border-color: #facc15;
+      }
+
+        .upload-box {
+            width: 220px;
+            height: 220px;
+            border: 2px dashed #b3b3b3;
             border-radius: 12px;
-            text-align: center;
-            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
             cursor: pointer;
-            transition: 0.3s;
+            background: #f8f9fa;
+            transition: 0.25s ease;
+            text-align: center;
+            margin-bottom: 15px;
         }
 
         .upload-box:hover {
-            background: #f1f1f1;
-        }
-
-        .upload-drop-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
+            background: #eef2f3;
         }
 
         .upload-box.dragover {
-            background: #e8f5e9;
-            border-color: #28a745;
+            background: #e1f7e6;
+            border-color: #22c55e;
         }
 
-        .upload-drop-area i {
+        .upload-label {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .upload-label i {
             font-size: 40px;
-            color: #6c757d;
+            margin-bottom: 8px;
+            color: #666;
         }
 
-              .gallery-grid {
+        .upload-label span {
+            font-size: 14px;
+            color: #444;
+        }
+
+        /* Gallery Grid (same as edit page) */
+        .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 15px;
         }
 
         .gallery-item {
             position: relative;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
             background: #f8f9fa;
             border: 1px solid #e5e7eb;
@@ -81,23 +118,18 @@
 
         .gallery-item img {
             width: 100%;
-            height: 140px;
+            height: 180px;
             object-fit: cover;
-            border-radius: 6px;
-            display: block;
         }
 
         .gallery-delete {
             position: absolute;
             top: 8px;
             right: 8px;
-            padding: 4px 7px;
+            padding: 6px 8px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.85;
-            transition: 0.2s;
+            opacity: 0.8;
+            transition: 0.2s ease;
         }
 
         .gallery-delete:hover {
@@ -165,16 +197,16 @@
             padding: 8px 12px;
           }
           #highlightList input {
-  font-size: 15px;
-  padding: 6px 10px;
-}
-#highlightList li {
-  transition: all 0.2s ease;
-}
-#highlightList li:hover {
-  background: #f9fafb;
-  border-radius: 6px;
-}
+      font-size: 15px;
+      padding: 6px 10px;
+        }
+        #highlightList li {
+          transition: all 0.2s ease;
+        }
+        #highlightList li:hover {
+          background: #f9fafb;
+          border-radius: 6px;
+        }
 
 
       </style>
@@ -234,270 +266,209 @@
                         <div class="inner-header mb-40">
                           <h3 class="title">Add Tour</h3>
                         </div>
-        <form id="form-edit-package" class="form-add-tour" data-id="{{ $id }}">
+                        <form action="/" id="form-add-tour" class="form-add-tour"> 
+                          <div class="container-fluid">
+  <div class="row">
+    <!-- LEFT FORM -->
+    <div class="col-lg-8 col-md-12" id="form-left">
+                           <div class="widget-dash-board pr-256 mb-75">
+                            
 
+                               <h4 class="title-add-tour mb-30">1. information</h4>
+                               <div class="grid-input-2 mb-45">
+                                 {{-- Places --}}
+                                                            <div class="input-wrap">
+                                              <label>Select your Place</label>
+                                              <div class="nice-select" id="placeDropdown" tabindex="0">
+                                                <span class="current">Select Place</span>
+                                                <ul class="list" id="placeList">
+                                                  <li data-value="" class="option selected focus">Select Place</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+                                            {{-- Tours --}}
+                                            <div class="input-wrap">
+                                              <label>Select your Tours</label>
+                                              <div class="nice-select" id="tourDropdown" tabindex="0">
+                                                <span class="current">Select Tour</span>
+                                                <ul class="list" id="tourList">
+                                                  <li data-value="" class="option selected focus">Select Tour</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+
+                                                                                <div class="input-wrap">
+                                                                                    <label>Enter your title</label>
+                                                                                    <input type="text" placeholder="Switzerland city tour">
+                                                                                </div>
+                                                                                <div class="input-wrap">
+                                                                                    <label>Enter your Subtitle</label>
+                                                                                    <input type="text" placeholder="Switzerland best city">
+                                                                                </div>
+                                                                                <div class="input-wrap">
+                                                                                  <label>No of Riders</label>
+                                                                                  <input type="text" placeholder="20,30... etc">
+                                                                              </div>
+                                                                              
+                                                                              
+                                                                                <div class="input-wrap">
+                                              <label>Select your Type</label>
+                                              <div class="nice-select" id="typeDropdown" tabindex="0">
+                                                <span class="current">Select Type</span>
+                                                <ul class="list" id="typeList">
+                                                  <li data-value="" class="option selected focus">Select Type</li>
+                                                </ul>
+                                              </div>
+                                            </div>
+                                                                            </div>
+                                                                            <div class="input-wrap mb-45">
+                                                                                <label>Enter Keywords</label>
+                                                                                <input type="text" placeholder="Keyword">
+                                                                            </div>
+                                                                            <div class="input-wrap mb-45">
+                                                                                <label>Overview/Description</label>
+                                                                                <textarea name="description" rows="12" cols="50"
+                                                                                    placeholder="Write content"></textarea>
+                                                                            </div>
+                                                                            <div class="container my-3">
+                                                                            
+                                                                            
+                                                                                {{-- Services --}}
+                                                                              <h4 class="mb-3 mt-3">Select Extra Services To Include in Package</h4>
+
+                                            <div class="row" id="servicesManager">
+                                              <!-- Left: Selected -->
+                                              <div class="col-md-6">
+                                                <div class="card shadow-sm">
+                                                  <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="m-0 fw-semibold">Selected Services</h6>
+                                                    <small class="text-muted">Added items</small>
+                                                  </div>
+                                                  <div class="card-body" id="selectedServicesList">
+                                                    <p class="text-muted small m-0 p-2">No selected services.</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <!-- Right: All Services -->
+                                              <div class="col-md-6">
+                                                <div class="card shadow-sm">
+                                                  <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="m-0 fw-semibold">Available Services</h6>
+                                                    <small class="text-muted">All items</small>
+                                                  </div>
+                                                  <div class="card-body" id="allServicesList">
+                                                    <p class="text-muted small m-0 p-2">Loading services...</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+
+                                                                              </div>
+
+
+                                                                              <!-- WHAT TO EXPECT SECTION -->
+                                                                              <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                <h4 class="mb-3">What To Expect</h4>
+
+                                                                                <div class="expectation-section border rounded-3 p-4 bg-white">
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="startingpoint" class="fw-semibold text-dark">Starting Point</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="startingpoint" class="form-control" placeholder="e.g. Manali, Himachal Pradesh">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="endingpoint" class="fw-semibold text-dark">Ending Point</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="endingpoint" class="form-control" placeholder="e.g. Leh, Ladakh">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row mb-3 align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="departuretime" class="fw-semibold text-dark">Departure Time</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="departuretime" class="form-control" placeholder="e.g. Please arrive by 7:00 AM for departure at 7:30 AM">
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div class="row align-items-center">
+                                                                                    <div class="col-md-3">
+                                                                                      <label for="difficultylevel" class="fw-semibold text-dark">Difficulty Level</label>
+                                                                                    </div>
+                                                                                    <div class="col-md-9">
+                                                                                      <input type="text" id="difficultylevel" class="form-control" placeholder="e.g. Moderate to Challenging">
+                                                                                    </div>
+                                                                                  </div>
+                                                                                </div>
+                                                                              </div>
+                                                                              <!-- HIGHLIGHTS SECTION -->
+                                                                              <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                  <h4 class="mb-0">Highlights</h4>
+                                                                                  <button type="button" id="btnAddHighlight" class="btn btn-sm btn-success">
+                                                                                    <i class="fa fa-plus"></i> Add
+                                                                                  </button>
+                                                                                </div>
+
+                                                                                <ul id="highlightList" class="list-unstyled border rounded-3 p-3 bg-white">
+                                                                                  <li class="text-muted small">No highlights added yet.</li>
+                                                                                </ul>
+                                                                              </div>
+
+                                                                                                                  <!-- Inclusion -->
+                                                                                <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                  <div class="d-flex justify-content-between">
+                                                                                    <h4>Inclusion</h4>
+                                                                                    <button type="button" id="btnAddInclusion" class="btn btn-sm btn-success">+ Add</button>
+                                                                                  </div>
+                                                                                  <ul id="inclusionList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                    <li class="text-muted small">No inclusion added.</li>
+                                                                                  </ul>
+                                                                                </div>
+
+                                                                                  <!-- Exclusion -->
+                                                                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                    <div class="d-flex justify-content-between">
+                                                                                      <h4>Exclusion</h4>
+                                                                                      <button type="button" id="btnAddExclusion" class="btn btn-sm btn-success">+ Add</button>
+                                                                                    </div>
+                                                                                    <ul id="exclusionList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                      <li class="text-muted small">No exclusion added.</li>
+                                                                                    </ul>
+                                                                                  </div>
+
+                                                                                  <!-- Complimentary -->
+                                                                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
+                                                                                    <div class="d-flex justify-content-between">
+                                                                                      <h4>Complimentary Benefits</h4>
+                                                                                      <button type="button" id="btnAddCompl" class="btn btn-sm btn-success">+ Add</button>
+                                                                                    </div>
+                                                                                    <ul id="complList" class="list-unstyled border rounded p-3 bg-white">
+                                                                                      <li class="text-muted small">No complimentary benefit added.</li>
+                                                                                    </ul>
+                                                                                  </div>
+
+                                                                           
+
+                                                                        </div>
                             <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title-add-tour mb-30">1. information</h4>
-                                <div class="grid-input-2 mb-45">
-                                  {{-- Places --}}
-                 <div class="input-wrap">
-  <label>Select your Place</label>
-  <div class="nice-select" id="placeDropdown" tabindex="0">
-    <span class="current">Select Place</span>
-    <ul class="list" id="placeList">
-      <li data-value="" class="option selected focus">Select Place</li>
-    </ul>
-  </div>
-</div>
-{{-- Tours --}}
-<div class="input-wrap">
-  <label>Select your Tours</label>
-  <div class="nice-select" id="tourDropdown" tabindex="0">
-    <span class="current">Select Tour</span>
-    <ul class="list" id="tourList">
-      <li data-value="" class="option selected focus">Select Tour</li>
-    </ul>
-  </div>
-</div>
-
-                                    <div class="input-wrap">
-                                        <label>Enter your title</label>
-                                        <input type="text" placeholder="Switzerland city tour">
-                                    </div>
-                                    <div class="input-wrap">
-                                        <label>Enter your Subtitle</label>
-                                        <input type="text" placeholder="Switzerland best city">
-                                    </div>
-                                    <div class="input-wrap">
-                                      <label>No of Riders</label>
-                                      <input type="text" placeholder="20,30... etc">
-                                  </div>
-                                   
-                                  
-                                    <div class="input-wrap">
-  <label>Select your Type</label>
-  <div class="nice-select" id="typeDropdown" tabindex="0">
-    <span class="current">Select Type</span>
-    <ul class="list" id="typeList">
-      <li data-value="" class="option selected focus">Select Type</li>
-    </ul>
-  </div>
-</div>
-                                </div>
-                                <div class="input-wrap mb-45">
-                                    <label>Enter Keywords</label>
-                                    <input type="text" placeholder="Keyword">
-                                </div>
-                                <div class="input-wrap mb-45">
-                                    <label>Overview/Description</label>
-                                    <textarea name="description" rows="12" cols="50"
-                                        placeholder="Write content"></textarea>
-                                </div>
-                                <div class="container my-3">
-                                  <h4 class="mb-3">Select Amenities</h4>
-                                
-                                    {{-- AMENITIES --}}
-                                    <div class="dual-manager mb-4" id="amenities-manager">
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchSelectedAmenities" placeholder="Search selected amenities...">
-                                          <div class="ms-2"><small class="text-muted">Selected</small></div>
-                                        </div>
-                                  
-                                        <div class="selected-wrap dm-list" id="selectedAmenities"></div>
-                                      </div>
-                                  
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchAllAmenities" placeholder="Search all amenities...">
-                                          <button type="button" class="btn btn-success btn-small ms-2" id="btnAddNewAmenity"><i class="fa fa-plus"></i> Add</button>
-                                        </div>
-                                  
-                                        <div class="dm-list" id="allAmenitiesList">
-                                          <p class="text-muted small m-0 p-2">Loading amenities...</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  
-                                    {{-- INCLUDED (same UI) --}}
-                                  <h4 class="mb-3">Select Included</h4>
-
-                                    <div class="dual-manager" id="included-manager">
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchSelectedIncluded" placeholder="Search selected included...">
-                                          <div class="ms-2"><small class="text-muted">Selected</small></div>
-                                        </div>
-                                  
-                                        <div class="selected-wrap dm-list" id="selectedIncluded"></div>
-                                      </div>
-                                  
-                                      <div class="dm-panel">
-                                        <div class="dm-top">
-                                          <input class="form-control dm-search" type="search" id="searchAllIncluded" placeholder="Search all included items...">
-                                          <button type="button" class="btn btn-success btn-small ms-2" id="btnAddNewIncluded"><i class="fa fa-plus"></i> Add</button>
-                                        </div>
-                                  
-                                        <div class="dm-list" id="allIncludedList">
-                                          <p class="text-muted small m-0 p-2">Loading included items...</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {{-- Services --}}
-                                   <h4 class="mb-3 mt-3">Select Extra Services To Include in Package</h4>
-
-<div class="row" id="servicesManager">
-  <!-- Left: Selected -->
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 fw-semibold">Selected Services</h6>
-        <small class="text-muted">Added items</small>
-      </div>
-      <div class="card-body" id="selectedServicesList">
-        <p class="text-muted small m-0 p-2">No selected services.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right: All Services -->
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 fw-semibold">Available Services</h6>
-        <small class="text-muted">All items</small>
-      </div>
-      <div class="card-body" id="allServicesList">
-        <p class="text-muted small m-0 p-2">Loading services...</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-                                  </div>
-
-
-                                  <!-- WHAT TO EXPECT SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <h4 class="mb-3">What To Expect</h4>
-
-                                    <div class="expectation-section border rounded-3 p-4 bg-white">
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="startingpoint" class="fw-semibold text-dark">Starting Point</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="startingpoint" class="form-control" placeholder="e.g. Manali, Himachal Pradesh">
-                                        </div>
-                                      </div>
-
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="endingpoint" class="fw-semibold text-dark">Ending Point</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="endingpoint" class="form-control" placeholder="e.g. Leh, Ladakh">
-                                        </div>
-                                      </div>
-
-                                      <div class="row mb-3 align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="departuretime" class="fw-semibold text-dark">Departure Time</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="departuretime" class="form-control" placeholder="e.g. Please arrive by 7:00 AM for departure at 7:30 AM">
-                                        </div>
-                                      </div>
-
-                                      <div class="row align-items-center">
-                                        <div class="col-md-3">
-                                          <label for="difficultylevel" class="fw-semibold text-dark">Difficulty Level</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                          <input type="text" id="difficultylevel" class="form-control" placeholder="e.g. Moderate to Challenging">
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <!-- HIGHLIGHTS SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h4 class="mb-0">Highlights</h4>
-                                      <button type="button" id="btnAddHighlight" class="btn btn-sm btn-success">
-                                        <i class="fa fa-plus"></i> Add
-                                      </button>
-                                    </div>
-
-                                    <ul id="highlightList" class="list-unstyled border rounded-3 p-3 bg-white">
-                                      <li class="text-muted small">No highlights added yet.</li>
-                                    </ul>
-                                  </div>
-
-                                <div class="input-wrap">
-                                    <div class="d-flex justify-content-between">
-                                        <label>Upload Package Images</label>
-                                    <button type="button" id="removeAllBtn" class="btn-small btn-danger mt-2" style="display: none;">
-                                        <i class="fa-solid fa-trash"></i> Remove All
-                                      </button>
-                                    </div>
-                                    <div class="upload-image-add-car mb-30">
-                                      <div id="imagePreviewContainer" class="image-preview-container"></div>
-                                  
-                                      <div class="upload-image-box">
-                                        <label for="images" class="uploadLabel">
-                                          <i class="fas fa-image"></i>
-                                          <span>Add Photos</span>
-                                          <span><i class="fa-solid fa-upload" style="font-size:14px;margin-right:5px;"></i> Choose Images</span>
-
-                                          <input type="file" name="images[]" id="images" multiple accept="image/*">
-                                        </label>
-                                      </div>
-                                    </div>
-                                    
-                                    <p><span class="text-main">*</span>Supported: <span class="text-main">JPG, PNG</span> (Max: 2MB each)</p>
-
-                                  </div>
-                                  {{-- Videos --}}
-                                  <div class="input-wrap">
-                                    <div class="d-flex justify-content-between">
-                                        <label>Upload Videos</label>
-                                     <button type="button" id="removeAllBtnvideo" class="btn-small btn-danger mt-2" style="display: none;">
-                                        <i class="fa-solid fa-trash"></i> Remove All
-                                      </button>
-                                    </div>
-                                    <div class="upload-video-add-car mb-30">
-                                      <div id="videoPreviewContainer" class="video-preview-container"></div>
-                                  
-                                      <div class="upload-video-section">
-  <label>Upload Tour Video</label>
-  <input type="file" id="videoInput" accept="video/*" style="display:none;">
-
-  <div id="progressContainer" style="display:none;width:100%;background:#eee;height:8px;margin:10px 0;">
-    <div id="progressBar" style="background:#28a745;height:8px;width:0%;transition:width 0.3s;"></div>
-  </div>
-
-  <p id="uploadStatus" class="text-muted"></p>
-
-  <div class="btn-group">
-    <button type="button" class="btn btn-primary" id="replaceVideoBtn">Add/Replace Video</button>
-    <button type="button" class="btn btn-danger" id="deleteVideoBtn">Delete Video</button>
-    <button type="button" class="btn btn-warning" id="cancelUploadBtn">Cancel Upload</button>
-  </div>
-</div>
-
-                                    </div>
-                                    
-                                    <p><span class="text-main">*</span>Supported: <span class="text-main">mp4</span> (Max: 20MB each)</p>
-
-                                  </div>
-
-                            </div>
-                            <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title-add-tour mb-30">2. Tour Planning</h4>
-                              
+                                <div class="d-flex justify-content-between mb-30">
+                                <h4 class="title-add-tour ">2. Tour Planning</h4>
+                                  <button type="button" id="toggleMapBtn" class="map-toggle-btn">Enable Map</button>
+                              </div>
                                 <div id="tourDaysContainer"></div>
-                              
+                                  <h4 class="mt-4" id="routemapheading">Route Map</h4>
+                                  <div id="routeMap" style="height: 400px; width: 100%;"></div>
+
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                   <button type="button" id="addDayBtn" class="btn-small btn-success">
                                     <i class="fa-solid fa-plus"></i> Add New Day
@@ -507,81 +478,149 @@
                                   </button>
                                 </div>
                               </div>
-                              {{-- Location Share Section  --}}
+                              {{-- Date Adding Repeater --}}
+                              <!-- DATES SECTION -->
                             <div class="widget-dash-board pr-256 mb-75">
-                                <h4 class="title">3. Location Share</h4>
-                                <div class="grid-input-2 mb-45">
-                                     <div class="input-wrap mb-45">
-                                    <label>Description</label>
-                                    <textarea name="descriptionLocation" rows="12" cols="50"
-                                        placeholder="Write content"></textarea>
-                                   </div>
-                                    
-                                </div>
-                                <!-- HIGHLIGHTS SECTION -->
-                                  <div class="widget-dash-board pr-256 mb-3 mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h4 class="mb-0">Highlights</h4>
-                                      <button type="button" id="btnAddHighlightLocation" class="btn btn-sm btn-success">
-                                        <i class="fa fa-plus"></i> Add
-                                      </button>
-                                    </div>
+                              <h4 class="title-add-tour mb-30">3. Dates</h4>
 
-                                    <ul id="highlightListLocation" class="list-unstyled border rounded-3 p-3 bg-white">
-                                      <li class="text-muted small">No highlights added yet.</li>
-                                    </ul>
-                                  </div>
-                                
-                               
+                              <div id="datesContainer"></div>
 
-
+                              <button type="button" id="addDateBtn" class="btn btn-sm btn-success mt-2">
+                                <i class="fa fa-plus"></i> Add Date
+                              </button>
                             </div>
 
+                            
+
                            
-                            <div class="widget-dash-board pr-256 mb-75">
+                            <div class="widget-dash-board pr-128 mb-75">
                                 <h4 class="title-add-tour mb-30">4. Pricing</h4>
 
                                 <div class="grid-input-2 mb-45">
                                     <div class="input-wrap">
-                                        <label>Tour Price</label>
-                                        <input type="number" placeholder="₹ 3215">
+                                      <div id="pricingContainer"></div>
+                                        <button type="button" id="addPriceBtn" class="btn btn-sm btn-success">
+                                          <i class="fa fa-plus"></i> Add Price Type
+                                        </button>
                                     </div>
                                    
                                 </div>
                                
 
                             </div>
-                            <div class="widget-dash-board pr-256">
-                                <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
+                         
+    </div>
+      <div style="height: fit-content" class="col-lg-4 bg-white p-4 col-md-12">
+      <div id="mediaSidebar" class="sticky-top">
+ 
+                                                                             
+        <h4>Tour Images</h4>
+        <!-- KEEP YOUR IMAGE UPLOAD CODE HERE -->
+                                                                        <div class="input-wrap">
+                                                                                <div class="d-flex justify-content-between">
+                                                                                    <label>Upload Package Images</label>
+                                                                                <button type="button" id="removeAllBtn" class="btn-small btn-danger mt-2" style="display: none;">
+                                                                                    <i class="fa-solid fa-trash"></i> Remove All
+                                                                                  </button>
+                                                                                </div>
+                                                                                <div class="upload-image-add-car mb-30">
+                                                                                  <div id="imagePreviewContainer" class="image-preview-container"></div>
+                                                                              
+                                                                                  <div class="upload-image-box">
+                                                                                    <label for="images" class="uploadLabel">
+                                                                                      <i class="fas fa-image"></i>
+                                                                                      <span>Add Photos</span>
+                                                                                      <span><i class="fa-solid fa-upload" style="font-size:14px;margin-right:5px;"></i> Choose Images</span>
+
+                                                                                      <input type="file" name="images[]" id="images" multiple accept="image/*">
+                                                                                    </label>
+                                                                                  </div>
+                                                                                </div>
+                                                                                
+                                                                                <p><span class="text-main">*</span>Supported: <span class="text-main">JPG, PNG</span> (Max: 2MB each)</p>
+
+                                                                              </div>
+
+        <hr>
+
+        <h4>Tour Video</h4>
+        <!-- KEEP VIDEO UPLOAD -->
+         {{-- Videos --}}
+                                                                                <div class="input-wrap">
+                                                                                  <div class="d-flex justify-content-between">
+                                                                                      <label>Upload Videos</label>
+                                                                                  <button type="button" id="removeAllBtnvideo" class="btn-small btn-danger mt-2" style="display: none;">
+                                                                                      <i class="fa-solid fa-trash"></i> Remove All
+                                                                                    </button>
+                                                                                  </div>
+                                                                                  <div class="upload-video-add-car mb-30">
+                                                                                    <div id="videoPreviewContainer" class="video-preview-container"></div>
+                                                                                
+                                                                                    <div class="upload-video-section">
+                                                                                      <label>Upload Tour Video</label>
+                                                                                      <input type="file" id="videoInput" accept="video/*" style="display:none;">
+
+                                                                                      <div id="progressContainer" style="display:none;width:100%;background:#eee;height:8px;margin:10px 0;">
+                                                                                        <div id="progressBar" style="background:#28a745;height:8px;width:0%;transition:width 0.3s;"></div>
+                                                                                      </div>
+
+                                                                                      <p id="uploadStatus" class="text-muted"></p>
+
+                                                                                      <div class="btn-group">
+                                                                                        <button type="button" class="btn btn-primary" id="replaceVideoBtn">Add/Replace Video</button>
+                                                                                        <button type="button" class="btn btn-danger" id="deleteVideoBtn">Delete Video</button>
+                                                                                        <button type="button" class="btn btn-warning" id="cancelUploadBtn">Cancel Upload</button>
+                                                                                      </div>
+                                                                                    </div>
+
+                                                                                                                        </div>
+                                                                                                                        
+                                                                                                                        <p><span class="text-main">*</span>Supported: <span class="text-main">mp4</span> (Max: 20MB each)</p>
+
+                                                                                </div>
+
+        <hr>
+
+        <h4>Shot Gallery</h4>
+        <!-- KEEP GALLERY CODE -->
+        <div class="input-wrap">
+              <h4 class="title-add-tour mb-30">5. Shot Gallery</h4>
 
                                {{-- Image will go here --}}
-                           <div class="upload-box mt-3 mb-2" id="uploadBox">
-                              <label for="uploadImage" class="upload-drop-area">
-                                  <i class="fa-solid fa-cloud-arrow-up"></i>
-                                  <span>Click or Drag images here</span>
-                              </label>
-                              <input type="file" id="uploadImage" accept="image/*" multiple hidden>
-                          </div>
+                                <div id="uploadBox" class="upload-box">
+                                    <label for="uploadImage" class="upload-label">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Click or Drag Images</span>
+                                    </label>
+                                    <input type="file" id="uploadImage" accept="image/*" multiple hidden>
+                                </div>
 
+                                <div id="galleryContainer" class="gallery-grid">
+                                    <p class="text-center text-muted">No Image Selected</p>
+                                </div>
+        </div>
 
-            <div id="galleryContainer" class="gallery-grid mt-3 mb-3">
-              <p class="text-center text-muted">Loading gallery...</p>
-            </div>
-<hr/>
-
-                                <div class="input-wrap">
-                                    <button type="button" class="button-add"> Save changes</button>
+      </div>
+         <div class="widget-dash-board ">
+                            
+                                        <hr/>
+                                <div class="input-wrap  my-3">
+                                    <button type="button" class="button-add w-100 "> Save changes</button>
                                 </div>
 
                             </div>
+    </div> <!-- END RIGHT -->
 
+  </div>
+  </div>
+                          
                         </form>
 
 
                     </section>
                 </main>
 
-                       @include('admin.components.footer')
+                  @include('admin.components.footer')
 
 
                 <!-- Bottom -->
@@ -625,6 +664,9 @@
     </div>
 
     <!-- Javascript -->
+    <script src="/app/js/admin-auth-guard.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <script src="/app/js/jquery.min.js"></script>
     <script src="/app/js/jquery.nice-select.min.js"></script>
     <script src="/app/js/bootstrap.min.js"></script>
@@ -641,7 +683,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.js"></script>
-    <script src="/app/js/admin-auth-guard.js"></script>
 
 
     <script>
@@ -649,443 +690,183 @@
     </script>
     <script src="/app/js/main.js"></script>
     
-    {{-- // Script for Amentite and included  --}}
-    <script>
-     let loadedPackage = null; // will store API /api/package/{id} response
 
-
-        // Generic manager factory
-        function DualManager(opts) {
-          const api = opts.api; // /api/amenities or /api/included
-          const $allList = $(opts.allListSelector);
-          const $selectedList = $(opts.selectedListSelector);
-          const $addNewBtn = $(opts.addNewBtnSelector);
-          const $searchAll = $(opts.searchAllSelector);
-          const $searchSelected = $(opts.searchSelectedSelector);
-
-          // state
-          let allItems = [];         // full list from server [{id,name},...]
-          let selectedItems = [];    // items added to left panel (array of objects)
-          let filteredAll = [];      // for search
-          let filteredSelected = [];
-
-          // load from server
-          function loadAll() {
-                  $allList.html('<p class="text-muted small m-0 p-2">Loading...</p>');
-                  $.get(api)
-                    .done((res) => {
-                      allItems = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
-                      filteredAll = allItems.slice();
-                      renderAll();
-                      renderSelected();
-
-                      // notify ready
-                      if (typeof opts.onLoaded === "function") {
-                            opts.onLoaded(allItems);
-                        }
-                    })
-                    .fail(() => {
-                      $allList.html('<p class="text-danger small m-0 p-2">Failed to load.</p>');
-                    });
-              }
-
-
-          // render all panel
-          function renderAll() {
-            $allList.empty();
-            if (!filteredAll.length) {
-              $allList.html('<p class="text-muted small m-0 p-2">No items found.</p>');
-              return;
-            }
-            filteredAll.forEach(item => {
-              const isAdded = !!selectedItems.find(s => s.id == item.id);
-              const disabledClass = isAdded ? 'disabled' : '';
-              const $el = $(`
-                <div class="dm-item ${disabledClass}" data-id="${item.id}">
-                  <div class="label">${escapeHtml(item.name)}</div>
-                  <div class="actions">
-                    <button type="button" class="btn btn-sm btn-outline-success btn-add" title="Add"><i class="fa fa-plus"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary btn-edit" title="Edit"><i class="fa fa-pen"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete" title="Delete"><i class="fa fa-trash"></i></button>
-                  </div>
-                </div>
-              `);
-              // attach events
-              $el.find('.btn-add').on('click', function(e) {
-                if (isAdded) return;
-                moveToSelected(item);
-              });
-              $el.find('.btn-edit').on('click', function(e) {
-                e.stopPropagation();
-                openEditPopup(item);
-              });
-              $el.find('.btn-delete').on('click', function(e) {
-                e.stopPropagation();
-                openDeleteConfirm(item);
-              });
-
-              $allList.append($el);
-            });
-          }
-  
-          // render selected left panel
-          function renderSelected() {
-            $selectedList.empty();
-            filteredSelected = selectedItems.slice();
-            if (!filteredSelected.length) {
-              $selectedList.html('<p class="text-muted small m-0 p-2">No selected items.</p>');
-              return;
-            }
-            filteredSelected.forEach((item, idx) => {
-              const $tag = $(`
-                <div class="selected-tag d-inline-flex" data-id="${item.id}">
-                  <span>${escapeHtml(item.name)}</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remove" title="Remove"><i class="fa fa-times"></i></button>
-                </div>
-              `);
-              $tag.find('.btn-remove').on('click', function(e) {
-                e.stopPropagation();
-                moveToAll(item);
-              });
-              $selectedList.append($tag);
-            });
-          }
-
-          // add -> left side
-          function moveToSelected(item) {
-            // animate: clone element and animate to selected box
-            const $source = $allList.find(`.dm-item[data-id="${item.id}"]`);
-            if ($source.length) {
-              const offsetSource = $source.offset();
-              const $temp = $source.clone().addClass('moving-temp').css({
-                width: $source.outerWidth(),
-                height: $source.outerHeight(),
-                left: offsetSource.left,
-                top: offsetSource.top
-              }).appendTo('body');
-              // push into state
-              selectedItems.push(item);
-              renderAll();
-              renderSelected();
-              const $target = $selectedList.offset();
-              // animate to target area
-              $temp.animate({ left: $target.left + 10, top: $target.top + 10, opacity: 0.1, width: 40, height: 20 }, 300, function() {
-                $temp.remove();
-              });
-            } else {
-              // fallback
-              selectedItems.push(item);
-              renderAll();
-              renderSelected();
-            }
-          }
-
-          // remove from left back to all
-          function moveToAll(item) {
-            const $targetEl = $allList.find(`.dm-item[data-id="${item.id}"]`);
-            // animate clone from selected
-            const $source = $selectedList.find(`.selected-tag[data-id="${item.id}"]`);
-            if ($source.length && $targetEl.length) {
-              const offSource = $source.offset();
-              const $temp = $source.clone().addClass('moving-temp').css({
-                width: $source.outerWidth(),
-                height: $source.outerHeight(),
-                left: offSource.left,
-                top: offSource.top
-              }).appendTo('body');
-
-              // remove from state
-              selectedItems = selectedItems.filter(s => s.id != item.id);
-              renderAll();
-              renderSelected();
-
-              const offTarget = $targetEl.offset();
-              $temp.animate({ left: offTarget.left, top: offTarget.top, opacity: 0.1, width: $targetEl.outerWidth(), height: $targetEl.outerHeight() }, 300, function() {
-                $temp.remove();
-              });
-            } else {
-              selectedItems = selectedItems.filter(s => s.id != item.id);
-              renderAll();
-              renderSelected();
-            }
-          }
-
-          // open add new popup
-          $addNewBtn.on('click', function() {
-            Swal.fire({
-              title: 'Add new',
-              input: 'text',
-              inputPlaceholder: 'Enter name',
-              showCancelButton: true,
-              confirmButtonText: 'Add',
-              inputValidator: v => !v && 'Name cannot be empty'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.post(api, { name: res.value })
-                  .done(resp => {
-                    // if API returns created object, push
-                    // reload all
-                    loadAll();
-                    Swal.fire('Added','New item added','success');
-                  })
-                  .fail(xhr => {
-                    Swal.fire('Error', xhr.responseJSON?.message || 'Failed to add', 'error');
-                  });
-              }
-            });
-          });
-
-          // edit
-          function openEditPopup(item) {
-            Swal.fire({
-              title: 'Edit item',
-              input: 'text',
-              inputValue: item.name,
-              showCancelButton: true,
-              confirmButtonText: 'Save',
-              inputValidator: v => !v && 'Name cannot be empty'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.ajax({
-                  url: `${api}/${item.id}`,
-                  type: 'PUT',
-                  data: { name: res.value }
-                }).done(() => {
-                  loadAll();
-                  // update name also in selectedItems if present
-                  selectedItems = selectedItems.map(si => si.id == item.id ? {...si, name: res.value} : si);
-                  renderSelected();
-                  Swal.fire('Saved','Updated successfully','success');
-                }).fail(xhr => {
-                  Swal.fire('Error', xhr.responseJSON?.message || 'Failed to update', 'error');
-                });
-              }
-            });
-          }
-
-          // delete
-          function openDeleteConfirm(item) {
-            Swal.fire({
-              title: `Delete "${item.name}"?`,
-              text: "This cannot be undone.",
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonText: 'Yes, delete'
-            }).then(res => {
-              if (res.isConfirmed) {
-                $.ajax({
-                  url: `${api}/${item.id}`,
-                  type: 'DELETE'
-                }).done(() => {
-                  // remove from state if selected
-                  selectedItems = selectedItems.filter(s => s.id != item.id);
-                  loadAll();
-                  renderSelected();
-                  Swal.fire('Deleted','Item removed','success');
-                }).fail(xhr => {
-                  Swal.fire('Error', xhr.responseJSON?.message || 'Failed to delete', 'error');
-                });
-              }
-            });
-          }
-
-          // search handlers
-          $searchAll.on('input', function() {
-            const q = $(this).val().toLowerCase().trim();
-            filteredAll = allItems.filter(it => it.name.toLowerCase().includes(q));
-            renderAll();
-          });
-          $searchSelected.on('input', function() {
-            const q = $(this).val().toLowerCase().trim();
-            // filter selectedItems view only, state unchanged
-            const prev = selectedItems.slice();
-            const filtered = prev.filter(it => it.name.toLowerCase().includes(q));
-            filteredSelected = filtered;
-            // temporarily render filteredSelected
-            $selectedList.empty();
-            if (!filtered.length) $selectedList.html('<p class="text-muted small m-0 p-2">No selected items.</p>');
-            else filtered.forEach((item, idx) => {
-              const $tag = $(`
-                <div class="selected-tag d-inline-flex" data-id="${item.id}">
-                  <span>${escapeHtml(item.name)}</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remove" data-index="${idx}"><i class="fa fa-times"></i></button>
-                </div>
-              `);
-              $tag.find('.btn-remove').on('click', function(e) {
-                e.stopPropagation();
-                moveToAll(item);
-              });
-              $selectedList.append($tag);
-            });
-          });
-
-          // expose getSelectedIds for form submission
-          function getSelectedIds() {
-            return selectedItems.map(s => s.id);
-          }
-
-          // escape html utility
-          function escapeHtml(str) {
-            return String(str).replace(/[&<>"'`=\/]/g, function(s){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[s]; });
-          }
-
-          // initial load
-          loadAll();
-
-                  return {
-                getSelectedIds: () => selectedItems.map(s => s.id),
-                allItems: () => allItems,
-                selectedItems: () => selectedItems,
-                renderAll,
-                renderSelected,
-                setSelected: (arr) => { selectedItems = arr; }
-            };
-
-
-        }
-
-  // 🟢 Initialize emoji pickers inside each new day block
-            function initializeEmojiPickers(container) {
-                const emojiInputs = container.querySelectorAll('.emoji-input');
-
-                emojiInputs.forEach((emojiInput) => {
-                const emojiPicker  = emojiInput.closest('.position-relative').querySelector('.emoji-picker-panel');
-                const emojiPreview = emojiInput.closest('.input-group').querySelector('.emoji-preview');
-
-                // open picker
-                emojiInput.addEventListener('focus', () => {
-                    document.querySelectorAll('.emoji-picker-panel').forEach(p => p.style.display = 'none');
-                    emojiPicker.style.display = 'block';
-                });
-                emojiInput.addEventListener('click', () => {
-                    document.querySelectorAll('.emoji-picker-panel').forEach(p => p.style.display = 'none');
-                    emojiPicker.style.display = 'block';
-                });
-
-                // when emoji is selected
-                emojiPicker.addEventListener('emoji-click', event => {
-                    const emoji = event.detail.unicode;
-                    emojiInput.value = emoji;
-                    emojiPreview.innerHTML = twemoji.parse(emoji, {
-                    folder: 'svg',
-                    ext: '.svg'
-                    }); // render as Twemoji image
-                    emojiPicker.style.display = 'none';
-                });
-
-                // click outside → close picker
-                document.addEventListener('click', e => {
-                    if (!emojiPicker.contains(e.target) && e.target !== emojiInput) {
-                    emojiPicker.style.display = 'none';
-                    }
-                });
-                });
-            }
-
-            // 🟢 Twemoji Render for existing emoji previews
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('.emoji-preview').forEach(el => {
-                el.innerHTML = twemoji.parse('😀', { folder: 'svg', ext: '.svg' });
-                });
-            });
-       
-       function preselectAmenities() {
-            const items = amenitiesMgr.allItems();
-            const selected = [];
-
-            loadedPackage.information.amenities.forEach(id => {
-                const match = items.find(x => x.id == id);
-                if (match) selected.push(match);
-            });
-
-            amenitiesMgr.setSelected(selected);
-            amenitiesMgr.renderAll();
-            amenitiesMgr.renderSelected();
-        }
-
-
-
-        function preselectIncluded() {
-            const items = includedMgr.allItems();
-            const selected = [];
-
-            loadedPackage.information.included.forEach(id => {
-                const match = items.find(x => x.id == id);
-                if (match) selected.push(match);
-            });
-
-            includedMgr.setSelected(selected);
-            includedMgr.renderAll();
-            includedMgr.renderSelected();
-        }
-
-
-
-</script>
-<script>
-  // =======================
-  // 2️⃣ THEN instantiate it
-  // =======================
-  const amenitiesMgr = DualManager({
-    name: "amenities",
-    api: APP_URL + '/api/amenities',
-    allListSelector: '#allAmenitiesList',
-    selectedListSelector: '#selectedAmenities',
-    addNewBtnSelector: '#btnAddNewAmenity',
-    searchAllSelector: '#searchAllAmenities',
-    searchSelectedSelector: '#searchSelectedAmenities',
-    onLoaded: () => {
-        const check = setInterval(() => {
-            if (loadedPackage && amenitiesMgr.allItems().length) {
-                preselectAmenities();
-                clearInterval(check);
-            }
-        }, 100);
-    },
-
-  });
-  
-  const includedMgr = DualManager({
-    name: "included",
-    api: APP_URL + '/api/included',
-    allListSelector: '#allIncludedList',
-    selectedListSelector: '#selectedIncluded',
-    addNewBtnSelector: '#btnAddNewIncluded',
-    searchAllSelector: '#searchAllIncluded',
-    searchSelectedSelector: '#searchSelectedIncluded',
-    onLoaded: () => {
-        const check = setInterval(() => {
-            if (loadedPackage && includedMgr.allItems().length) {
-                preselectIncluded();
-                clearInterval(check);
-            }
-        }, 100);
-    },
-
-  });
-
-
-  </script>
   <script>
 let allServices = [];
 let selectedServices = [];
+let ALL_LOCATIONS = [];
+let loadedPackage = null; // will store API /api/package/{id} response
+  // ============================
+        // Create Day Block
+        // ============================
+        function createDayBlock(index) {
+          const block = document.createElement('div');
+          block.classList.add('day-block', 'p-3', 'border', 'rounded', 'mb-4', 'shadow-sm');
+          block.dataset.index = index;
+         
 
-function loadServices() {
-  const $all = $('#allServicesList');
-  const $selected = $('#selectedServicesList');
-  $all.html('<p class="text-muted small p-2">Loading services...</p>');
+          block.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-semibold">Day ${index}</h5>
+              <button type="button" class="btn-small btn-outline-danger btn-remove-day">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+            </div>
+            <!-- Emoji Picker -->
+            <div class="grid-input-2 mb-3">
+              <div class="input-wrap">
+                <label>Period (Day/Night)</label>
+                <select class="form-select">
+                  <option value="Day">Day</option>
+                </select>
+              </div>
+              <!-- CITY NAME (Always Visible) -->
+                <div class="input-wrap">
+                  <label>City Name</label>
+                  <input type="text" placeholder="Enter City Name" class="form-control city-input">
+                </div>
 
-  $.get(`${APP_URL}/api/get-service`)
-    .done(res => {
-      allServices = res.data || [];
-      renderAll();
-      renderSelected();
-    })
-    .fail(() => {
-      $all.html('<p class="text-danger small p-2">Failed to load services.</p>');
-    });
-}
+                <!-- EXACT LOCATION (Visible Only When Map = ON) -->
+                <div class="input-wrap exact-location-wrap" style="display:none; position:relative;">
+                    <label>Exact Location (Map Search)</label>
 
+                    <input type="text" class="form-control exact-location-input" placeholder="Search location...">
+
+                    <!-- Suggestions dropdown -->
+                    <div class="location-suggestions bg-white border rounded mt-1" 
+                        style="display:none; position:absolute; width:100%; z-index:9999;"></div>
+
+                    <!-- Hidden map coords -->
+                    <input type="hidden" class="location-lat">
+                    <input type="hidden" class="location-lng">
+                    <input type="hidden" class="location-display">
+                </div>
+
+
+            </div>
+    
+            <div class="grid-input-2 mb-3">
+              <div class="input-wrap">
+                <label>City Subtitle</label>
+                <input type="text" placeholder="From – To or Short Subtitle" class="form-control">
+              </div>
+            </div>
+    
+             
+    
+        
+    
+            <div class="input-wrap mb-3">
+              <label>Day Description (What we do there)</label>
+             <textarea class="textarea-tinymce" name="area"></textarea>
+            </div>
+          `;
+    
+        attachLocationAutocomplete(block);
+
+          return block;
+        }
+  function loadServices() {
+    const $all = $('#allServicesList');
+    const $selected = $('#selectedServicesList');
+    $all.html('<p class="text-muted small p-2">Loading services...</p>');
+
+    $.get(`${APP_URL}/api/get-service`)
+      .done(res => {
+        allServices = res.data || [];
+        renderAll();
+        renderSelected();
+      })
+      .fail(() => {
+        $all.html('<p class="text-danger small p-2">Failed to load services.</p>');
+      });
+  }
+
+    function drawRouteMap() {
+      const mapDiv = document.getElementById("routeMap");
+      if (!mapDiv) return;
+
+      mapDiv.innerHTML = "";
+      let points = [];
+
+      $("#tourDaysContainer .day-block").each(function () {
+          const lat = $(this).find(".location-lat").val();
+          const lng = $(this).find(".location-lng").val();
+
+          if (lat && lng) points.push([parseFloat(lat), parseFloat(lng)]);
+      });
+
+      if (points.length < 2) return;
+
+      const map = L.map("routeMap").setView(points[0], 6);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+      // draw route
+      L.polyline(points, { color: "yellow", weight: 4 }).addTo(map);
+
+      // markers
+      points.forEach((p, i) => {
+          L.marker(p).addTo(map).bindPopup("Day " + (i + 1));
+      });
+
+      map.fitBounds(points);
+  }
+
+  function attachLocationAutocomplete(block) {
+      const input = block.querySelector(".exact-location-input");
+      const suggestionBox = block.querySelector(".location-suggestions");
+      const latInput = block.querySelector(".location-lat");
+      const lngInput = block.querySelector(".location-lng");
+      const displayInput = block.querySelector(".location-display");
+
+     input.addEventListener("input", function () {
+    const val = this.value.trim();
+
+    if (!val) {
+        suggestionBox.style.display = "none";
+        return;
+    }
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&countrycodes=in&q=${encodeURIComponent(val)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.length) {
+                suggestionBox.innerHTML = `<div class="p-1 text-muted">No results</div>`;
+                suggestionBox.style.display = "block";
+                return;
+            }
+
+            suggestionBox.innerHTML = data
+                .map(loc => `
+                    <div class="p-1 suggestion-item"
+                        data-lat="${loc.lat}"
+                        data-lon="${loc.lon}"
+                        data-name="${loc.display_name}">
+                        ${loc.display_name}
+                    </div>
+                `)
+                .join("");
+
+            suggestionBox.style.display = "block";
+
+            suggestionBox.querySelectorAll(".suggestion-item").forEach(item => {
+                item.addEventListener("click", function () {
+                    input.value = this.dataset.name;
+                    latInput.value = this.dataset.lat;
+                    lngInput.value = this.dataset.lon;
+                    displayInput.value = this.dataset.name;
+                    suggestionBox.style.display = "none";
+
+                    drawRouteMap();
+                });
+            });
+        });
+});
+
+  }
+
+  
 // Render all services (right panel)
 function renderAll() {
   const $all = $('#allServicesList');
@@ -1175,13 +956,21 @@ function getSelectedServiceIds() {
 
 
   $(document).ready(function () {
+  // Load locations at start (India only)
+  fetch("https://nominatim.openstreetmap.org/search?country=India&format=json&addressdetails=1&limit=500&dedupe=1&featureType=city")
+      .then(res => res.json())
+      .then(data => {
+          ALL_LOCATIONS = data;
+          console.log("Loaded:", ALL_LOCATIONS.length);
+      });
+
 
     const placeDropdown = $('#placeDropdown');
     const placeList = $('#placeList');
     const tourDropdown = $('#tourDropdown');
     const tourList = $('#tourList');
     loadServices();
-    // Disable tour dropdown initially
+     // Disable tour dropdown initially
     tourDropdown.addClass('disabled');
     tourDropdown.css('pointer-events', 'none');
     tourDropdown.find('.current').text('Select Place First');
@@ -1325,7 +1114,6 @@ if (loadedPackage && loadedPackage.place_id) {
       $(this).addClass('selected focus');
       tourDropdown.attr('data-selected-id', value);
     });
-
     // Features Type 
     
     const typeDropdown = $('#typeDropdown');
@@ -1368,95 +1156,45 @@ if (loadedPackage && loadedPackage.place_id) {
         const tourDaysContainer = document.getElementById('tourDaysContainer');
         const addDayBtn = document.getElementById('addDayBtn');
         const removeAllDaysBtn = document.getElementById('removeAllDaysBtn');
+ 
+      
+
+        let mapEnabled = false;
+
+       $("#toggleMapBtn").on("click", function () {
+
+          mapEnabled = !mapEnabled;
+
+          // Toggle button look
+          $(this).toggleClass("active");
+
+          // Show/Hide exact location fields for ALL existing days
+          $("#tourDaysContainer .exact-location-wrap").each(function () {
+              $(this).toggle(mapEnabled);
+          });
+
+          // Show/Hide map
+          $("#routeMap").toggle(mapEnabled);
+          $('#routemapheading').toggle(mapEnabled);
+          if (mapEnabled) drawRouteMap();
+      });
 
 
-        // ============================
-        // Create Day Block
-        // ============================
-        function createDayBlock(index) 
-        {
-          const block = document.createElement('div');
-          block.classList.add('day-block', 'p-3', 'border', 'rounded', 'mb-4', 'shadow-sm');
-          block.dataset.index = index;
     
-          block.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="fw-semibold">Day ${index}</h5>
-              <button type="button" class="btn-small btn-outline-danger btn-remove-day">
-                <i class="fa-solid fa-trash"></i> Remove
-              </button>
-            </div>
-                <!-- Emoji Picker -->
-                          <div class="input-wrap position-relative">
-                            <label>Select Emoji</label>
-                            <div class="input-group">
-                              <input 
-                                type="text" 
-                                class="form-control emoji-input" 
-                                name="emoji[]" 
-                                placeholder="Click to choose emoji" 
-                                readonly 
-                                style="cursor:pointer;font-size:24px;text-align:center;">
-                            </div>
-                            <emoji-picker class="emoji-picker-panel" style="position:absolute;top:100%;left:0;z-index:999;display:none;width:300px;"></emoji-picker>
-                          </div>
-                        </div>
-                        <div class="grid-input-2 mb-3">
-                          <div class="input-wrap">
-                            <label>Period (Day/Night)</label>
-                            <select class="form-select">
-                              <option value="Day">Day</option>
-                            </select>
-                          </div>
-                          <div class="input-wrap">
-                            <label>City Name</label>
-                            <input type="text" placeholder="Enter City Name" class="form-control">
-                          </div>
-                        </div>
-                
-                        <div class="grid-input-2 mb-3">
-                          <div class="input-wrap">
-                            <label>City Subtitle</label>
-                            <input type="text" placeholder="From – To or Short Subtitle" class="form-control">
-                          </div>
-                
-                        
-                
-                    
-                
-                        <div class="input-wrap mb-3">
-                          <label>Day Description (What we do there)</label>
-                        <textarea class="textarea-tinymce" name="area"></textarea>
-                        </div>
-                      `;
-                
-                      initializeEmojiPickers(block);
-                      return block;
-        }
-        // Renumber all days after add/delete
-        function renumberDays() {
-            let count = 1;
-            $("#tourDaysContainer .day-block").each(function () {
-                $(this).attr("data-index", count);
-                $(this).find("h5").text("Day " + count);
-                count++;
-            });
-
-            dayIndex = count; // reset global index for next new day correctly
-        }
-
         // ============================
         // Add New Day
         // ============================
-          addDayBtn.addEventListener('click', () => {
-            const newBlock = createDayBlock(dayIndex);
-            tourDaysContainer.appendChild(newBlock);
+        addDayBtn.addEventListener('click', () => {
+          const newBlock = createDayBlock(dayIndex);
+          if (mapEnabled) {
+            $(newBlock).find(".exact-location-wrap").show();
+        }
 
-            renumberDays(); // 🔥 FIX — always recalc days
-            removeAllDaysBtn.style.display = 'inline-block';
-            bindRemoveButtons();
+          tourDaysContainer.appendChild(newBlock);
+          removeAllDaysBtn.style.display = 'inline-block';
+          dayIndex++;
+          bindRemoveButtons();
         });
-
     
         // ============================
         // Bind Remove Day Buttons
@@ -1475,22 +1213,34 @@ if (loadedPackage && loadedPackage.place_id) {
                 confirmButtonText: "Yes, remove it!"
               }).then((result) => {
                 if (result.isConfirmed) {
-                 btn.closest('.day-block').remove();
-
-                renumberDays(); // 🔥 FIX — always recalc days
-
-                if (!tourDaysContainer.children.length) {
+                  btn.closest('.day-block').remove();
+                  renumberDays();
+                  drawRouteMap();
+                  if (!tourDaysContainer.children.length) {
                     removeAllDaysBtn.style.display = 'none';
-                }
-
-                Swal.fire("Removed!", "Day plan has been deleted.", "success");
-
+                    dayIndex = 1;
+                  }
+                  Swal.fire("Removed!", "Day plan has been deleted.", "success");
                 }
               });
             };
           });
         }
-    
+        function renumberDays() {
+          let dayNum = 1;
+          $("#tourDaysContainer .day-block").each(function () {
+            $(this).find("h5").text("Day " + dayNum);
+            dayNum++;
+          });
+        }
+        function renumberDates() {
+          let i = 1;
+          $("#datesContainer .date-block").each(function(){
+            $(this).find("h6").text("Date " + i);
+            i++;
+          });
+        }
+
         // ============================
         // Remove All Days
         // ============================
@@ -1506,15 +1256,22 @@ if (loadedPackage && loadedPackage.place_id) {
           }).then((result) => {
             if (result.isConfirmed) {
               tourDaysContainer.innerHTML = "";
-              renumberDays(); // cleanup
-
+              dayIndex = 1;
               removeAllDaysBtn.style.display = 'none';
               Swal.fire("All Cleared!", "All day plans have been removed.", "success");
             }
           });
         });
     
+ 
+  
 
+  // // 🟢 Twemoji Render for existing emoji previews
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   document.querySelectorAll('.emoji-preview').forEach(el => {
+  //     el.innerHTML = twemoji.parse('😀', { folder: 'svg', ext: '.svg' });
+  //   });
+  // });
 
   
 
@@ -1568,55 +1325,7 @@ $(function () {
   });
 });
 
-// ===========================
-// HIGHLIGHT MANAGEMENT for Location Share
-// ===========================
-$(function () {
-  const $highlightList = $("#highlightListLocation");
-  const $btnAddHighlight = $("#btnAddHighlightLocation");
 
-  function renderHighlights() {
-    const items = $highlightList.find("li input").map(function() {
-      return $(this).val().trim();
-    }).get().filter(Boolean);
-
-    if (items.length === 0) {
-      $highlightList.html('<li class="text-muted small">No highlights added yet.</li>');
-    }
-  }
-
-  // Add new highlight
-  $btnAddHighlight.on("click", function () {
-    // remove "no highlights" message if present
-    if ($highlightList.find("li.text-muted").length) $highlightList.empty();
-
-    const $li = $(`
-      <li class="mb-2 d-flex align-items-center">
-        <input type="text" class="form-control me-2" placeholder="Enter highlight" style="flex:1;">
-        <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
-      </li>
-    `);
-
-    // remove logic with confirm
-    $li.find(".btn-remove").on("click", function () {
-      Swal.fire({
-        title: "Remove this highlight?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, remove",
-        cancelButtonText: "Cancel",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          $li.remove();
-          renderHighlights();
-          Swal.fire("Removed!", "Highlight removed.", "success");
-        }
-      });
-    });
-
-    $highlightList.append($li);
-  });
-});
 
 
     
@@ -1626,36 +1335,225 @@ $(function () {
   // =======================================
 
 
+  // --- state ---
+// ===================
+// IMAGE / GALLERY STATE
+// ===================
 
-// MAIN PACKAGE IMAGES
-let existingImages = [];   // [{url,is_main}]
-let newImages = [];        // [File]
-let mainImageIndex = 0;    // unified index for "main"
-  
-// SHOT GALLERY
-let existingGallery = [];  // [{url}]
-let newGallery = [];       // [File]
- // separate gallery images
+// For main package images (existing + new)
+let imagesState = []; 
+// item = { type: 'existing' | 'new', url: '...', file: File|null, is_main: boolean }
+
+// For shot gallery (existing + new)
+let shotGalleryState = []; 
+// item = { type: 'existing' | 'new', url: '...', file: File|null }
+
+// Video
 let videoFile = null;
+let uploadedVideoPath = null; // from resumable upload (string path)
+
+// ---------- Images (package) handling ----------
+// =============== PACKAGE IMAGES ===============
+
+// When user selects new images
+$('#images').on('change', function () {
+    const newFiles = Array.from(this.files).filter(f => f.type && f.type.startsWith('image/'));
+
+    newFiles.forEach(file => {
+        imagesState.push({
+            type: 'new',
+            file,
+            url: URL.createObjectURL(file),
+            is_main: imagesState.length === 0 // first image becomes main if none
+        });
+    });
+
+    renderPreviews();
+    this.value = ""; // allow same file again if needed
+});
+
+// Render preview of main package images
+function renderPreviews() {
+    const previewContainer = $('#imagePreviewContainer');
+    previewContainer.empty();
+
+    if (!imagesState.length) {
+        $('#removeAllBtn').hide();
+        previewContainer.html('<p class="text-muted">No images added yet</p>');
+        return;
+    }
+
+    $('#removeAllBtn').show();
+
+    imagesState.forEach((item, index) => {
+        const isMain = item.is_main;
+        const mainLabel = isMain ? 'Main' : 'Set as Main';
+        const disabledAttr = isMain ? 'disabled' : '';
+
+        const src = item.type === 'existing'
+            ? item.url              // full URL already
+            : item.url;             // created via URL.createObjectURL
+
+        const preview = $(`
+            <div class="image-preview-box" data-index="${index}">
+                <div class="image-preview">
+                    <img src="${src}" alt="Image Preview">
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="edit-btn btn btn-sm btn-secondary">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button" class="delete-btn btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button type="button" class="set-main-btn btn btn-sm btn-warning" ${disabledAttr}>
+                        <i class="fas fa-star"></i> ${mainLabel}
+                    </button>
+                </div>
+            </div>
+        `);
+
+        previewContainer.append(preview);
+    });
+}
+
+// Set as main image
+$('#imagePreviewContainer').on('click', '.set-main-btn', function () {
+    const idx = Number($(this).closest('.image-preview-box').data('index'));
+    if (!Number.isFinite(idx)) return;
+
+    imagesState = imagesState.map((img, i) => ({
+        ...img,
+        is_main: i === idx
+    }));
+
+    renderPreviews();
+});
+
+// Delete single image
+$('#imagePreviewContainer').on('click', '.delete-btn', function () {
+    const idx = Number($(this).closest('.image-preview-box').data('index'));
+    if (!Number.isFinite(idx)) return;
+
+    imagesState.splice(idx, 1);
+    // ensure at least one is main if any exists
+    if (imagesState.length && !imagesState.some(i => i.is_main)) {
+        imagesState[0].is_main = true;
+    }
+    renderPreviews();
+});
+
+// Edit/replace single image
+$(document).on('click', '.edit-btn', function () {
+    const $box = $(this).closest('.image-preview-box');
+    const idx = Number($box.data('index'));
+    if (!Number.isFinite(idx)) return;
+
+    const tempInput = $('<input type="file" accept="image/*" style="display:none;">');
+    $('body').append(tempInput);
+    tempInput.trigger('click');
+
+    tempInput.on('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (file && file.type && file.type.startsWith('image/')) {
+            imagesState[idx] = {
+                type: 'new',
+                file,
+                url: URL.createObjectURL(file),
+                is_main: imagesState[idx].is_main
+            };
+            renderPreviews();
+        } else {
+            alert('Please select a valid image file.');
+        }
+        tempInput.remove();
+    });
+});
+
+// Remove all images
+$('#removeAllBtn').on('click', function () {
+    if (!confirm('Remove all images?')) return;
+    imagesState = [];
+    renderPreviews();
+});
 
 
+// =============== SHOT GALLERY ===============
 
+// Add new gallery images via input
+$('#uploadImage').on('change', function () {
+    const newFiles = Array.from(this.files).filter(f => f.type && f.type.startsWith('image/'));
+    newFiles.forEach(file => {
+        shotGalleryState.push({
+            type: 'new',
+            file,
+            url: URL.createObjectURL(file)
+        });
+    });
+    renderGallery();
+    this.value = "";
+});
 
+// Render shot gallery
+function renderGallery() {
+    const container = $('#galleryContainer');
+    container.empty();
 
+    if (!shotGalleryState.length) {
+        container.html('<p class="text-center text-muted">No gallery images yet</p>');
+        return;
+    }
 
+    shotGalleryState.forEach((item, index) => {
+        const src = item.url;
+        const card = $(`
+            <div class="gallery-item" data-index="${index}">
+                <img src="${src}" alt="Gallery image">
+                <div class="gallery-actions">
+                    <button type="button" class="gallery-delete btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `);
+        container.append(card);
+    });
+}
 
+// Delete gallery image
+$('#galleryContainer').on('click', '.gallery-delete', function () {
+    const idx = Number($(this).closest('.gallery-item').data('index'));
+    if (!Number.isFinite(idx)) return;
+    shotGalleryState.splice(idx, 1);
+    renderGallery();
+});
 
+// Drag-and-drop for shot gallery
+const uploadBox = document.getElementById("uploadBox");
 
+uploadBox.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadBox.classList.add("dragover");
+});
 
+uploadBox.addEventListener("dragleave", () => {
+    uploadBox.classList.remove("dragover");
+});
 
+uploadBox.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadBox.classList.remove("dragover");
 
-
-
-
-
-
-
-
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    files.forEach(file => {
+        shotGalleryState.push({
+            type: 'new',
+            file,
+            url: URL.createObjectURL(file)
+        });
+    });
+    renderGallery();
+});
 
 // ---------- Video input ----------
 /* Add this HTML where appropriate:
@@ -1672,7 +1570,6 @@ $('#videoInput').on('change', function () {
 
 
 let r = null;
-let uploadedVideoPath = null; // from server
 let currentUploadFile = null;
 
 // Initialize resumable instance
@@ -1763,477 +1660,525 @@ document.getElementById('replaceVideoBtn').addEventListener('click', async funct
   document.getElementById('videoInput').click();
 });
 
+// DATES HANDLER
+let dateIndex = 1;
+
+$("#addDateBtn").on("click", function(){
+  $("#datesContainer").append(`
+      <div class="border rounded p-3 mb-3 date-block">
+        <div class="d-flex justify-content-between">
+          <h6>Date ${dateIndex}</h6>
+          <button class="btn btn-sm btn-danger remove-date">Remove</button>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-md-6">
+            <label>Starting Date</label>
+            <input type="date" class="form-control startingDate">
+          </div>
+
+          <div class="col-md-6">
+            <label>Ending Date</label>
+            <input type="date" class="form-control endingDate">
+          </div>
+        </div>
+      </div>
+  `);
+  dateIndex++;
+});
+
+$(document).on("click", ".remove-date", function(){
+  $(this).closest(".date-block").remove();
+    renumberDates();
+});
+
+$("#addPriceBtn").on("click", function(){
+  $("#pricingContainer").append(`
+    <div class="border p-3 rounded mb-2 price-block">
+      <div class="row">
+        <div class="col-md-5">
+          <label>Name (Solo/Dual/OBOF/SIC)</label>
+          <input type="text" class="form-control price-name">
+        </div>
+       
+         <div class="col-md-5">
+          <label>No of Riders</label>
+          <input type="number" class="form-control rider-value">
+        </div>
+
+         <div class="col-md-5">
+          <label>Price</label>
+          <input type="number" class="form-control price-value">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-danger btn-sm remove-price">X</button>
+        </div>
+      </div>
+    </div>
+  `);
+});
+
+$(document).on("click", ".remove-price", function(){
+  $(this).closest(".price-block").remove();
+});
 
 
-    // Handle input click selection (multi files)
-    $("#uploadImage").on("change", function () {
-        const files = Array.from(this.files);
-        newGallery.push(...files);
-        renderGallery();
-        this.value = "";
-    });
-
-    // Drag & Drop Support
-    const uploadBox = document.getElementById("uploadBox");
-
-    uploadBox.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        uploadBox.classList.add("dragover");
-    });
-
-    uploadBox.addEventListener("dragleave", () => {
-        uploadBox.classList.remove("dragover");
-    });
-
-    uploadBox.addEventListener("drop", (e) => {
-        e.preventDefault();
-        uploadBox.classList.remove("dragover");
-
-        const files = Array.from(e.dataTransfer.files).filter(
-            (file) => file.type.startsWith("image/")
-        );
-
-        newGallery.push(...files);
-        renderGallery();
-    });
-
-    // Clicking the box opens selector
-    $("#uploadBox").on("click", () => {
-        $("#uploadImage").trigger("click");
-    });
 
 
+// GENERIC ADD/REMOVE
+  function listHandler(btnId, containerId, emptyText){
+    $(btnId).on("click", function(){
+      const list = $(containerId);
+      if(list.find("li.text-muted").length) list.empty();
 
-function renderGallery() {
-    const container = $("#galleryContainer");
-    container.empty();
+      const li = $(`
+        <li class="mb-2 d-flex align-items-center">
+          <input type="text" class="form-control me-2" placeholder="Type and enter">
+          <button class="btn btn-sm btn-danger btn-remove">X</button>
+        </li>
+      `);
 
-    if (existingGallery.length === 0 && newGallery.length === 0) {
-        container.html('<p class="text-muted text-center">No gallery images</p>');
-        return;
-    }
-
-      existingGallery.forEach((img, idx) => {
-        container.append(`
-            <div class="gallery-item" data-type="existing" data-index="${idx}">
-                <img src="${img.url}">
-                <button class="gallery-delete btn btn-danger btn-sm">
-                    <i class="fa fa-trash"></i>
-                </button>
-            </div>
-        `);
-    });
-
-      newGallery.forEach((file, idx) => {
-          const src = URL.createObjectURL(file);
-          container.append(`
-              <div class="gallery-item" data-type="new" data-index="${idx}">
-                  <img src="${src}">
-                  <button class="gallery-delete btn btn-danger btn-sm">
-                      <i class="fa fa-trash"></i>
-                  </button>
-              </div>
-          `);
+      li.find(".btn-remove").on("click", ()=> {
+        li.remove();
+        if(!$(containerId).children().length){
+          $(containerId).html(`<li class='text-muted small'>${emptyText}</li>`);
+        }
       });
 
-}
-
-$("#uploadImage").on("change", function () {
-    const files = Array.from(this.files);
-    newGallery.push(...files);
-    renderGallery();
-    this.value = "";
-});
-
-$("#galleryContainer").on("click", ".gallery-delete", function () {
-    const box = $(this).closest(".gallery-item");
-    const type = box.data("type");
-    const idx = box.data("index");
-
-    if (type === "existing") {
-        existingGallery.splice(idx, 1);
-    } else {
-        newGallery.splice(idx, 1);
-    }
-
-    renderGallery();
-});
-/* ============================================================
-   CLEAN IMAGE MANAGEMENT SYSTEM
-   Supports:
-   - existing images from server
-   - uploading new images
-   - deleting
-   - set as main
-   - correct unified index
-=============================================================== */
-
-// UNIFIED LIST
-function allImages() {
-    return [
-        ...existingImages.map(img => ({ type: "existing", img })),
-        ...newImages.map(file => ({ type: "new", img: file }))
-    ];
-}
-
-// RENDER ALL IMAGES
-function renderImages() {
-    const container = $("#imagePreviewContainer");
-    container.empty();
-
-    const list = allImages();
-    if (list.length === 0) {
-        container.html('<p class="text-muted">No images selected</p>');
-        $("#removeAllBtn").hide();
-        return;
-    }
-
-    list.forEach((item, idx) => {
-        let imgSrc = item.type === "existing"
-            ? item.img.url
-            : URL.createObjectURL(item.img);
-
-        container.append(`
-            <div class="image-preview-box" data-type="${item.type}" data-index="${idx}">
-                <div class="image-preview">
-                    <img src="${imgSrc}">
-                </div>
-                <div class="action-buttons">
-                    <button class="btn btn-danger btn-sm btn-delete">Delete</button>
-                    <button class="btn btn-warning btn-sm btn-main">
-                        ${idx === mainImageIndex ? "Main" : "Set Main"}
-                    </button>
-                </div>
-            </div>
-        `);
+      list.append(li);
     });
+  }
 
-    $("#removeAllBtn").show();
-}
-
-// ON SELECT NEW FILES
-$("#images").on("change", function () {
-    const files = Array.from(this.files);
-    newImages.push(...files);
-    renderImages();
-    this.value = "";
-});
-
-// DELETE HANDLER
-$("#imagePreviewContainer").on("click", ".btn-delete", function () {
-    const box = $(this).closest(".image-preview-box");
-    const type = box.data("type");
-    const idx = box.data("index");
-
-    if (type === "existing") {
-        existingImages.splice(idx, 1);
-    } else {
-        newImages.splice(idx - existingImages.length, 1);
-    }
-
-    // adjust main index
-    if (mainImageIndex === idx) mainImageIndex = 0;
-    renderImages();
-});
-
-// SET MAIN HANDLER
-$("#imagePreviewContainer").on("click", ".btn-main", function () {
-    const idx = $(this).closest(".image-preview-box").data("index");
-    mainImageIndex = idx; // unified index
-    renderImages();
-});
-
-// REMOVE ALL
-$("#removeAllBtn").on("click", function () {
-    existingImages = [];
-    newImages = [];
-    mainImageIndex = 0;
-    renderImages();
-});
-
-
-
-
-const PACKAGE_ID = "{{ $id }}";
-function fillForm(data) {
-
-    // INFORMATION
-    $("input[placeholder='Switzerland city tour']").val(data.information.title);
-    $("input[placeholder='Switzerland best city']").val(data.information.subtitle);
-    $("input[placeholder='20,30... etc']").val(data.information.noofriders);
-    $("textarea[name='description']").val(data.information.description);
-
-    // KEYWORDS
-    $("input[placeholder='Keyword']").val(data.information.keyword.join(", "));
-
-    // PLACE & TOUR SELECT
-   // PLACE
-    const placeOption = $(`#placeList li[data-value='${data.place_id}']`);
-    if (placeOption.length) {
-        $("#placeDropdown .option").removeClass("selected focus");
-        placeOption.addClass("selected focus");
-        $("#placeDropdown .current").text(placeOption.text());
-        $("#placeDropdown").attr("data-selected-id", data.place_id);
-    }
-
-  // TOUR
-    const tourOption = $(`#tourList li[data-value='${data.tour_id}']`);
-    if (tourOption.length) {
-        $("#tourDropdown .option").removeClass("selected focus");
-        tourOption.addClass("selected focus");
-        $("#tourDropdown .current").text(tourOption.text());
-        $("#tourDropdown").attr("data-selected-id", data.tour_id);
-    }
-
-    // TYPE DROPDOWN
-   // TYPE
-    const typeOption = $(`#typeList li[data-value='${data.information.type}']`);
-    if (typeOption.length) {
-        $("#typeDropdown .option").removeClass("selected focus");
-        typeOption.addClass("selected focus");
-        $("#typeDropdown .current").text(typeOption.text());
-        $("#typeDropdown").attr("data-selected-id", data.information.type);
-    }
-
-    // WHAT TO EXPECT
-    $("#startingpoint").val(data.information.whattoexpect.startingpoint);
-    $("#endingpoint").val(data.information.whattoexpect.endingpoint);
-    $("#departuretime").val(data.information.whattoexpect.departuretime);
-    $("#difficultylevel").val(data.information.whattoexpect.difficultylevel);
-
-    // HIGHLIGHT (information)
-    $("#highlightList").empty();
-    data.information.highlight.forEach(h => {
-        $("#highlightList").append(`
-            <li class="mb-2 d-flex align-items-center">
-                <input type="text" class="form-control me-2" value="${h}" style="flex:1;">
-                <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
-            </li>
-        `);
-    });
-
-    // LOCATIONSHARE
-    $("textarea[name='descriptionLocation']").val(data.locationshare.description);
-    $("#highlightListLocation").empty();
-    data.locationshare.highlight.forEach(h => {
-        $("#highlightListLocation").append(`
-            <li class="mb-2 d-flex align-items-center">
-                <input type="text" class="form-control me-2" value="${h}" style="flex:1;">
-                <button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="fa fa-trash"></i></button>
-            </li>
-        `);
-    });
-
-    // PRICING
-    $("input[placeholder='₹ 3215']").val(data.pricing);
-
-    // TOUR DAYS
-    tourDaysContainer.innerHTML = "";
-    dayIndex = 1;
-
-    data.tour.forEach((day, i) => {
-        const block = createDayBlock(dayIndex);
-        $(block).find(".emoji-input").val(day.icon);
-        $(block).find("select").val(day.period);
-        $(block).find("input[placeholder='Enter City Name']").val(day.location);
-        $(block).find("input[placeholder='From – To or Short Subtitle']").val(day.locationSubtitle);
-        $(block).find("textarea").val(day.locationDescription);
-        tourDaysContainer.appendChild(block);
-        dayIndex++;
-    });
-      renumberDays();          // ensure correct day numbers
-      bindRemoveButtons();     // 🔥 now remove button will work
-
-
-
-
-
-
-    // SERVICES (preselect)
-    setTimeout(() => {
-        selectedServices = data.services_details;
-        renderAll();
-        renderSelected();
-    }, 1200);
-
-    // IMAGES (package images - load preview)
-    // IMAGES (package images - load preview)
-      existingImages = (data.information.images || []).map(img => ({
-          url: APP_URL + "/" + img.url,
-          is_main: img.is_main ? true : false
-      }));
-
-      mainImageIndex = existingImages.findIndex(i => i.is_main);
-      if (mainImageIndex < 0) mainImageIndex = 0;
-
-      renderImages(); // ✅ use the new unified renderer
-
-      // SHOT GALLERY (load existing gallery from server)
-      existingGallery = (data.information.shot_gallery || []).map(img => ({
-          url: APP_URL + "/" + img.url
-      }));
-      newGallery = [];
-      renderGallery();
-
-
-
-  
-
-    // VIDEO URL
-    uploadedVideoPath = data.information.video;
-    $("#uploadStatus").text(uploadedVideoPath ? "Existing video loaded" : "No video");
-}
-
-fetch(`${APP_URL}/api/package/${PACKAGE_ID}`)
-  .then(res => res.json())
-  .then(packageData => {
-      loadedPackage = packageData;
-      fillForm(packageData);
-  });
+listHandler("#btnAddInclusion", "#inclusionList", "No inclusion added.");
+listHandler("#btnAddExclusion", "#exclusionList", "No exclusion added.");
+listHandler("#btnAddCompl", "#complList", "No complimentary benefits added.");
 
 // ---------- Form submit (build FormData) ----------
-$('.button-add').on('click', function (e) {
-  e.preventDefault();
-  Swal.fire({
+  $('.button-add').on('click', function (e) {
+    e.preventDefault();
+    const packageId = window.location.pathname.split("/").pop();
+
+    Swal.fire({
         title: "Updating Package...",
         text: "Please wait while we save your changes.",
         allowOutsideClick: false,
         allowEscapeKey: false,
         allowEnterKey: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
+        didOpen: () => Swal.showLoading()
     });
-  // gather your existing information object (as before)
-  const information = {
-    title: $("input[placeholder='Switzerland city tour']").val()?.trim(),
-    subtitle: $("input[placeholder='Switzerland best city']").val()?.trim(),
-    noofriders: $("input[placeholder='20,30... etc']").val()?.trim(),
-    description: $("textarea[name='description']").val()?.trim(),
-    type: $("#typeDropdown .option.selected").data("value") || null,
-    keyword: ($("input[placeholder='Keyword']").val() || "").split(",").map(k => k?.trim()).filter(Boolean),
-    highlight: $("#highlightList li input").map(function () { return $(this).val().trim(); }).get().filter(Boolean),
-    whattoexpect: {
-      startingpoint: $("#startingpoint").val(),
-      endingpoint: $("#endingpoint").val(),
-      departuretime: $("#departuretime").val(),
-      difficultylevel: $("#difficultylevel").val()
-    },
-    included: typeof includedMgr !== 'undefined' ? includedMgr.getSelectedIds() : [],
-    amenities: typeof amenitiesMgr !== 'undefined' ? amenitiesMgr.getSelectedIds() : [],
-  };
+
+    // ---------- Build information ----------
+    const information = {
+        title: $("input[placeholder='Switzerland city tour']").val()?.trim(),
+        subtitle: $("input[placeholder='Switzerland best city']").val()?.trim(),
+        noofriders: $("input[placeholder='20,30... etc']").val()?.trim(),
+        description: $("textarea[name='description']").val()?.trim(),
+        type: $("#typeDropdown .option.selected").data("value") || $("#typeDropdown").attr("data-selected-id") || null,
+        keyword: ($("input[placeholder='Keyword']").val() || "")
+            .split(",")
+            .map(k => k.trim())
+            .filter(Boolean),
+        highlight: $("#highlightList li input").map(function () {
+            return $(this).val().trim();
+        }).get().filter(Boolean),
+        whattoexpect: {
+            startingpoint: $("#startingpoint").val(),
+            endingpoint: $("#endingpoint").val(),
+            departuretime: $("#departuretime").val(),
+            difficultylevel: $("#difficultylevel").val()
+        },
+        video: uploadedVideoPath || null
+    };
+
+    // ---------- Tour ----------
     const tour = [];
-    $("#tourDaysContainer .day-block").each(function() {
-      tour.push({
-        period: $(this).find("select").val() || "",
-        location: $(this).find("input[placeholder='Enter City Name']").val() || "",
-        locationSubtitle: $(this).find("input[placeholder='From – To or Short Subtitle']").val() || "",
-        locationDescription: $(this).find("textarea").val() || "",
-        icon: $(this).find(".emoji-input").val() || ""
-      });
+    $("#tourDaysContainer .day-block").each(function () {
+        const city = $(this).find(".city-input").val() || "";
+        const exactLocation = $(this).find(".location-display").val() || "";
+        const lat = $(this).find(".location-lat").val() || "";
+        const lng = $(this).find(".location-lng").val() || "";
+        const enableMap = mapEnabled;
+
+        tour.push({
+            period: $(this).find("select").val() || "",
+            location: city,
+            locationSubtitle: $(this).find("input[placeholder='From – To or Short Subtitle']").val() || "",
+            locationDescription: $(this).find("textarea").val() || "",
+            icon: $(this).find(".emoji-input").val() || "",
+            ...(enableMap ? {
+                exact_location: exactLocation,
+                lat: lat,
+                long: lng
+            } : {})
+        });
     });
 
-  const locationshare = {
-    highlight: $("#highlightListLocation li input").map(function () { return $(this).val().trim(); }).get().filter(Boolean),
-    description: $("textarea[name='descriptionLocation']").val()?.trim(),
+    // ---------- Inclusion / Exclusion / Complimentary ----------
+    function getList(selector) {
+        return $(selector + " input").map(function () {
+            return $(this).val().trim();
+        }).get().filter(Boolean);
+    }
+    information.inclusion = getList("#inclusionList");
+    information.exclusion = getList("#exclusionList");
+    information.complimentary_benefits = getList("#complList");
 
-  }
- const services = getSelectedServiceIds();
+    // ---------- Services ----------
+    const services = getSelectedServiceIds();
 
+    // ---------- Place / Tour ids ----------
+    const place_id = $("#placeDropdown .option.selected").data("value") || $("#placeDropdown").attr("data-selected-id") || null;
+    const tour_id = $("#tourDropdown .option.selected").data("value") || $("#tourDropdown").attr("data-selected-id") || null;
 
-  // other top-level fields
-  const place_id = $("#placeDropdown .option.selected").data("value") || null;
-  const tour_id = $("#tourDropdown .option.selected").data("value") || null;
-  const pricing = parseInt($("input[placeholder='₹ 3215']").first().val()) || 0;
-
-  // Build FormData
-  const fd = new FormData();
-  information.video = uploadedVideoPath;
-  // 1) information as JSON
-  fd.append('information', JSON.stringify(information));
-  fd.append('locationshare', JSON.stringify(locationshare));
-  fd.append('tour', JSON.stringify(tour));
-  fd.append('services', JSON.stringify(services));
-
-  // 2) add place/tour/pricing scalars (optional separate fields)
-  fd.append('place_id', place_id ?? '');
-  fd.append('tour_id', tour_id ?? '');
-  fd.append('pricing', pricing);
-   /* ============================================================
-   IMAGE + GALLERY FORM DATA BUILDER
-=============================================================== */
-
-// PACKAGE IMAGES
-existingImages.forEach((img, i) => {
-    fd.append(`existing_images[${i}][url]`, img.url);
-    fd.append(`existing_images[${i}][is_main]`, (mainImageIndex === i) ? 1 : 0);
-});
-
-newImages.forEach((file, i) => {
-    fd.append(`new_images[${i}]`, file);
-});
-
-// unified main index
-fd.append("main_index", mainImageIndex);
-
-// SHOT GALLERY
-existingGallery.forEach((img, i) => {
-    fd.append(`existing_gallery[${i}]`, img.url);
-});
-
-newGallery.forEach((file, i) => {
-    fd.append(`new_gallery[${i}]`, file);
-});
-
-
-  // Example: send with fetch
- fetch(`${APP_URL}/api/package/${PACKAGE_ID}`, {
-    method: "POST",
-    headers: {
-        "X-HTTP-Method-Override": "PUT",
-        "Accept": "application/json"
-    },
-    body: fd
-}) .then(async res => {
-        let data;
-        try {
-            data = await res.json();
-        } catch (e) {
-            throw new Error("Invalid JSON response from server.");
-        }
-
-        if (!res.ok) {
-            throw new Error(data.message || "Something went wrong");
-        }
-
-        // ===========================
-        // SUCCESS SWEETALERT
-        // ===========================
-        Swal.fire({
-            icon: "success",
-            title: "Updated Successfully!",
-            text: "Your package has been updated.",
-            confirmButtonColor: "#28a745",
+    // ---------- Dates ----------
+    const dates = [];
+    $("#datesContainer .date-block").each(function () {
+        dates.push({
+            startingDate: $(this).find(".startingDate").val(),
+            endingDate: $(this).find(".endingDate").val()
         });
+    });
 
-        return data;
+    // ---------- Pricing ----------
+    const pricing = [];
+    $("#pricingContainer .price-block").each(function () {
+        pricing.push({
+            name: $(this).find(".price-name").val(),
+            price: $(this).find(".price-value").val(),
+            riders: $(this).find(".rider-value").val()
+        });
+    });
+
+    // ---------- Build FormData ----------
+    const fd = new FormData();
+
+    fd.append('information', JSON.stringify(information));
+    fd.append('tour', JSON.stringify(tour));
+    fd.append('services', JSON.stringify(services));
+    fd.append('place_id', place_id ?? '');
+    fd.append('tour_id', tour_id ?? '');
+    fd.append('dates', JSON.stringify(dates));
+    fd.append('pricing', JSON.stringify(pricing));
+    fd.append('_method', 'PUT');
+
+    // ===== IMAGES META (Option A: keep existing unless removed) =====
+    const imagesMeta = [];
+    let newIndex = 0;
+
+    imagesState.forEach((img) => {
+        if (img.type === 'existing') {
+            // send existing path for backend
+            const cleanPath = img.url.replace(/^https?:\/\/[^/]+/, '').replace(/^\//, '');
+            imagesMeta.push({
+                type: 'existing',
+                url: cleanPath,
+                is_main: !!img.is_main
+            });
+        } else if (img.type === 'new' && img.file instanceof File) {
+            imagesMeta.push({
+                type: 'new',
+                index: newIndex,
+                is_main: !!img.is_main
+            });
+            fd.append(`images[${newIndex}]`, img.file, img.file.name || `image_${newIndex}.jpg`);
+            newIndex++;
+        }
+    });
+
+    fd.append('images_meta', JSON.stringify(imagesMeta));
+
+    // ===== SHOT GALLERY META =====
+    const shotMeta = [];
+    let shotNewIndex = 0;
+
+    shotGalleryState.forEach((img) => {
+        if (img.type === 'existing') {
+            const cleanPath = img.url.replace(/^https?:\/\/[^/]+/, '').replace(/^\//, '');
+            shotMeta.push({
+                type: 'existing',
+                url: cleanPath
+            });
+        } else if (img.type === 'new' && img.file instanceof File) {
+            shotMeta.push({
+                type: 'new',
+                index: shotNewIndex
+            });
+            fd.append(`shotgallery[${shotNewIndex}]`, img.file, img.file.name || `shot_${shotNewIndex}.jpg`);
+            shotNewIndex++;
+        }
+    });
+
+    fd.append('shotgallery_meta', JSON.stringify(shotMeta));
+
+
+
+    // ---------- SEND PUT REQUEST ----------
+    fetch(`${APP_URL}/api/package/${packageId}`, {
+        method: 'POST',       // If you're using Laravel, for PUT you might need POST + _method
+        body: fd,
+        headers: {
+            'Accept': 'application/json'
+        }
     })
-    .catch(err => {
-        // ===========================
-        // ERROR SWEETALERT
-        // ===========================
-        Swal.fire({
-            icon: "error",
-            title: "Update Failed",
-            html: `<p style="text-align:left;">${err.message}</p>`,
-            confirmButtonColor: "#d33",
+        .then(async res => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                throw new Error("Invalid JSON response from server.");
+            }
+
+            if (!res.ok) {
+                throw new Error(data.message || "Something went wrong");
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Updated Successfully!",
+                text: "Your package has been updated.",
+                confirmButtonColor: "#28a745",
+            });
+
+            return data;
+        })
+        .catch(err => {
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed",
+                html: `<p style="text-align:left;">${err.message}</p>`,
+                confirmButtonColor: "#d33",
+            });
         });
-    });
-});
+  });
+
 
       </script>
     
+      <script>
+          // =========================
+          // AUTO-FILL PACKAGE EDIT FORM
+          // =========================
 
+            document.addEventListener("DOMContentLoaded", function () {
+                const packageId = window.location.pathname.split("/").pop(); // get id from /admin/package/edit/4
+
+                fetch(`/api/package/${packageId}`)
+                    .then(res => res.json())
+                    .then(data => fillForm(data));
+            });
+
+            function fillForm(pkg) {
+                const info = pkg.information || {};
+
+                // ---------- 1. Information ----------
+                $("input[placeholder='Switzerland city tour']").val(info.title || "");
+                $("input[placeholder='Switzerland best city']").val(info.subtitle || "");
+                $("input[placeholder='20,30... etc']").val(info.noofriders || "");
+                $("textarea[name='description']").val(info.description || "");
+
+                // Keywords
+                if (Array.isArray(info.keyword)) {
+                    $("input[placeholder='Keyword']").val(info.keyword.join(", "));
+                }
+
+                // Type dropdown (after /api/type/get has populated)
+                // We only set text + selected id; matching by id
+                if (info.type) {
+                    $("#typeDropdown").attr("data-selected-id", info.type);
+                    // name text: if you want real name you can map later when types loaded
+                    $("#typeDropdown .current").text(info.type);
+                }
+
+                // What to expect
+                const wte = info.whattoexpect || {};
+                $("#startingpoint").val(wte.startingpoint || "");
+                $("#endingpoint").val(wte.endingpoint || "");
+                $("#departuretime").val(wte.departuretime || "");
+                $("#difficultylevel").val(wte.difficultylevel || "");
+
+                // ---------- 2. Highlights ----------
+                $("#highlightList").empty();
+                if (Array.isArray(info.highlight) && info.highlight.length) {
+                    info.highlight.forEach(h => {
+                        $("#highlightList").append(`
+                            <li class="mb-2 d-flex align-items-center">
+                                <input type="text" class="form-control me-2" value="${h}">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </li>
+                        `);
+                    });
+                } else {
+                    $("#highlightList").html(`<li class="text-muted small">No highlights added yet.</li>`);
+                }
+
+                // ---------- 3. Inclusion ----------
+                $("#inclusionList").empty();
+                if (Array.isArray(info.inclusion) && info.inclusion.length) {
+                    info.inclusion.forEach(i => {
+                        $("#inclusionList").append(`
+                            <li class="mb-2 d-flex align-items-center">
+                                <input type="text" class="form-control me-2" value="${i}">
+                                <button class="btn btn-sm btn-danger btn-remove">X</button>
+                            </li>
+                        `);
+                    });
+                } else {
+                    $("#inclusionList").html(`<li class="text-muted small">No inclusion added.</li>`);
+                }
+
+                // ---------- 4. Exclusion ----------
+                $("#exclusionList").empty();
+                if (Array.isArray(info.exclusion) && info.exclusion.length) {
+                    info.exclusion.forEach(i => {
+                        $("#exclusionList").append(`
+                            <li class="mb-2 d-flex align-items-center">
+                                <input type="text" class="form-control me-2" value="${i}">
+                                <button class="btn btn-sm btn-danger btn-remove">X</button>
+                            </li>
+                        `);
+                    });
+                } else {
+                    $("#exclusionList").html(`<li class="text-muted small">No exclusion added.</li>`);
+                }
+
+                // ---------- 5. Complimentary ----------
+                $("#complList").empty();
+                if (Array.isArray(info.complimentary_benefits) && info.complimentary_benefits.length) {
+                    info.complimentary_benefits.forEach(c => {
+                        $("#complList").append(`
+                            <li class="mb-2 d-flex align-items-center">
+                                <input type="text" class="form-control me-2" value="${c}">
+                                <button class="btn btn-sm btn-danger btn-remove">X</button>
+                            </li>
+                        `);
+                    });
+                } else {
+                    $("#complList").html(`<li class="text-muted small">No complimentary benefit added.</li>`);
+                }
+
+                // ---------- 6. Tour Days ----------
+                $("#tourDaysContainer").empty();
+                if (Array.isArray(pkg.tour)) {
+                    pkg.tour.forEach((day, i) => {
+                        dayIndex = i + 1;
+                        const block = createDayBlock(dayIndex);
+
+                        $(block).find(".city-input").val(day.location || "");
+                        $(block).find("input[placeholder='From – To or Short Subtitle']").val(day.locationSubtitle || "");
+                        $(block).find("textarea").val(day.locationDescription || "");
+
+                        $("#tourDaysContainer").append(block);
+                    });
+                    if (pkg.tour.length > 0) {
+                        $("#removeAllDaysBtn").show();
+                    }
+                }
+
+                // ---------- 7. Dates ----------
+                $("#datesContainer").empty();
+                if (Array.isArray(pkg.dates)) {
+                    pkg.dates.forEach((d, i) => {
+                        $("#datesContainer").append(`
+                            <div class="border rounded p-3 mb-3 date-block">
+                                <div class="d-flex justify-content-between">
+                                    <h6>Date ${i + 1}</h6>
+                                    <button class="btn btn-sm btn-danger remove-date">Remove</button>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <label>Starting Date</label>
+                                        <input type="date" class="form-control startingDate" value="${d.startingDate}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Ending Date</label>
+                                        <input type="date" class="form-control endingDate" value="${d.endingDate}">
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+
+                // ---------- 8. Pricing ----------
+                $("#pricingContainer").empty();
+                if (Array.isArray(pkg.pricing)) {
+                    pkg.pricing.forEach(p => {
+                        $("#pricingContainer").append(`
+                            <div class="border p-3 rounded mb-2 price-block">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label>Name (Solo/Dual/OBOF/SIC)</label>
+                                        <input type="text" class="form-control price-name" value="${p.name}">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label>No of Riders</label>
+                                        <input type="number" class="form-control rider-value" value="${p.riders}">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label>Price</label>
+                                        <input type="number" class="form-control price-value" value="${p.price}">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button class="btn btn-danger btn-sm remove-price">X</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+
+                // ---------- 9. Services (pre-selected) ----------
+                selectedServices = pkg.services_details || [];
+                renderSelected();
+                renderAll();
+
+                // ---------- 10. Images ----------
+                imagesState = [];
+                if (Array.isArray(info.images)) {
+                    info.images.forEach((img, idx) => {
+                        imagesState.push({
+                            type: 'existing',
+                            url: '/' + img.url,
+                            file: null,
+                            is_main: !!img.is_main || idx === 0
+                        });
+                    });
+                }
+                renderPreviews();
+
+                // ---------- 11. Shot gallery ----------
+                shotGalleryState = [];
+                if (Array.isArray(info.shot_gallery)) {
+                    info.shot_gallery.forEach(img => {
+                        shotGalleryState.push({
+                            type: 'existing',
+                            url: '/' + img.url,
+                            file: null
+                        });
+                    });
+                }
+                renderGallery();
+
+                // ---------- 12. Video ----------
+                if (info.video) {
+                    uploadedVideoPath = info.video; // server path
+                    $("#uploadStatus").text("Existing video attached.");
+                }
+
+                // ---------- 13. Place / Tour preselect (if dropdowns already loaded) ----------
+                // NOTE: your place/tour dropdowns are filled via /api/place and /api/tours/by-place
+                // This just sets attributes; you may want to hook into that logic if you need full nice-select behaviour.
+                if (pkg.place_id) {
+                    $("#placeDropdown").attr("data-selected-id", pkg.place_id);
+                }
+                if (pkg.tour_id) {
+                    $("#tourDropdown").attr("data-selected-id", pkg.tour_id);
+                }
+            }
+
+      </script>
   
 </body>
 

@@ -47,7 +47,7 @@ class EnquiryController extends Controller
     {
         $data = $request->validate([
             'package_id' => 'required|exists:packages,id',
-            'date' => 'nullable|date',
+            'date' => 'nullable|string',
             'user_name' => 'required|string|max:255',
             'user_phone' => 'required|string|max:20',
             'user_email' => 'nullable|email',
@@ -71,25 +71,25 @@ class EnquiryController extends Controller
     }
 
     // UPDATE
-    public function update(Request $request, PackageEnquiry $enquiry)
-    {
-        $data = $request->validate([
-            'date' => 'nullable|date',
-            'user_name' => 'sometimes|string|max:255',
-            'user_phone' => 'sometimes|string|max:20',
-            'user_email' => 'nullable|email',
-            'no_of_riders' => 'sometimes|integer|min:1',
-            'services' => 'nullable|array',
-            'message' => 'nullable|string'
-        ]);
+  public function update(Request $request, PackageEnquiry $enquiry)
+        {
+            $data = $request->validate([
+                'date'         => 'nullable|string',  // FIXED
+                'user_name'    => 'sometimes|string|max:255',
+                'user_phone'   => 'sometimes|string|max:20',
+                'user_email'   => 'nullable|email',
+                'no_of_riders' => 'sometimes|integer|min:1',
+                'services'     => 'nullable|array',
+                'message'      => 'nullable|string'
+            ]);
 
-        $enquiry->update($data);
+            $enquiry->update($data);
 
-        return response()->json([
-            'message' => 'Enquiry updated',
-            'data' => $enquiry
-        ]);
-    }
+            return response()->json([
+                'message' => 'Enquiry updated',
+                'data' => $enquiry
+            ]);
+        }
 
     // DELETE
     public function destroy(PackageEnquiry $enquiry)
